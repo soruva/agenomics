@@ -4,20 +4,103 @@
     <meta charset="UTF-8">
     <title>Agenomics Sandbox</title>
     <style>
-        /* 最小限の見た目 */
-        body { background: #111; color: #eee; font-family: sans-serif; padding: 20px; }
-        #arena { width: 400px; height: 300px; border: 1px solid #444; position: relative; margin-bottom: 10px; overflow: hidden; }
-        .agent { position: absolute; font-size: 24px; transition: all 0.5s; }
-        .btn { padding: 10px; background: #333; color: white; cursor: pointer; display: inline-block; margin-right: 5px; }
-        #log { height: 150px; overflow-y: scroll; border: 1px solid #222; font-size: 12px; padding: 5px; background: #000; }
-        #arena { width: 100%; height: 300px; border: 2px solid #333; position: relative; background: #1a1a1a; overflow: hidden; }
-.agent-container { position: absolute; transition: all 0.5s ease-out; text-align: center; }
-.agent-icon { font-size: 32px; }
-.wealth-bar { width: 40px; height: 4px; background: #444; margin-top: 2px; border-radius: 2px; overflow: hidden; }
-.wealth-fill { height: 100%; background: #10b981; transition: width 0.3s; }
-#leaderboard { position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 8px; border: 1px solid #444; width: 150px; }
-.bubble { position: absolute; background: white; color: black; padding: 5px 10px; border-radius: 15px; font-size: 12px; bottom: 50px; left: 50%; transform: translateX(-50%); white-space: nowrap; z-index: 10; font-weight: bold; }
-    </style>
+        :root {
+    --bg: #0a0a0f;
+    --card: #16161e;
+    --accent: #7aa2f7;
+    --green: #4ade80;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --text: #c0caf5;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+h1 {
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 1.5rem;
+    margin: 20px 0;
+    text-shadow: 0 0 10px rgba(122, 162, 247, 0.5);
+}
+
+/* アリーナ（砂場）のデザイン */
+#arena {
+    width: 90vw;
+    max-width: 600px;
+    height: 400px;
+    background: radial-gradient(circle, #1a1b26 0%, #0a0a0f 100%);
+    border: 1px solid rgba(122, 162, 247, 0.2);
+    border-radius: 12px;
+    position: relative;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 30px rgba(122, 162, 247, 0.1);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+/* ボタンのデザイン */
+.controls { display: flex; gap: 10px; margin-bottom: 20px; }
+.btn {
+    padding: 10px 20px;
+    background: var(--card);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+.btn:hover {
+    background: var(--accent);
+    color: var(--bg);
+    box-shadow: 0 0 15px var(--accent);
+}
+
+/* ログエリア */
+#log {
+    width: 90vw;
+    max-width: 600px;
+    height: 180px;
+    background: var(--card);
+    border-radius: 8px;
+    padding: 15px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    overflow-y: scroll;
+    border-top: 2px solid var(--accent);
+}
+
+/* ランキングボード */
+#leaderboard {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(22, 22, 30, 0.9);
+    backdrop-filter: blur(10px);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(122, 162, 247, 0.3);
+    min-width: 140px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* エージェントのアニメーション */
+.agent {
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
+}
+ </style>
 </head>
 <body>
 

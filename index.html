@@ -76,6 +76,9 @@
     addLog(`${actor.emoji} ${actor.name} bought ${good} from ${target.emoji} ${target.name}: +$${amount}`, "#15803D");
     addLog(`   💸 ${target.name} is now $${fmt(target.wealthUSD)}`, "#DC2626");
 
+        // 資産が20ドル以下になったら、中央銀行が補助金を出して救済する
+    agents.forEach(a => { if(a.wealthUSD < 20) a.wealthUSD = 20; });
+        
     // 5. 画面更新
     if (typeof moveAgents === 'function') moveAgents();
     if (typeof updateLB === 'function') updateLB();

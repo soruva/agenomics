@@ -31,113 +31,122 @@
     <div id="log">ここに取引ログが出ます...</div>
 
     <script>
-        // --- 1. ここに「土台となる変数」を貼る (先ほどお出ししたもの) ---
-        let st = { paused: false, turn: 0, round: 0, trades: 0 };
-        let agents = [
-            { id: 'aria', name: 'Aria', emoji: '💃', wealthUSD: 100, x: 50, y: 50, style: 'aggressive' },
-            { id: 'bolt', name: 'Bolt', emoji: '⚡', wealthUSD: 100, x: 150, y: 50, style: 'conservative' }
-        ];
-        let GOODS = ["Stock", "Crypto"];
-        let selAgent = 'aria';
-        let currentMode = 'normal';
-        let activeTab = 'main';
-        let glitchCooldown = {};
-        let glitchState = { winStreak: {}, newsRepeat: 0 };
+// --- 1. 全ての変数をここで定義 (不足エラーを防ぐ) ---
+let st = { paused: false, turn: 0, round: 0, trades: 0 };
+let agents = [
+    { id: 'aria', name: 'Aria', emoji: '💃', wealthUSD: 100, x: 50, y: 50, style: 'aggressive' },
+    { id: 'bolt', name: 'Bolt', emoji: '⚡', wealthUSD: 100, x: 150, y: 50, style: 'conservative' }
+];
+let GOODS = ["Stock", "Crypto", "Bond", "Gold"];
+let selAgent = 'aria';
+let currentMode = 'normal';
+let activeTab = 'main';
+let glitchCooldown = {};
+let glitchState = { winStreak: {}, newsRepeat: 0, prevNewsId: null };
+let cardCooldowns = {};
 
-        let cardCooldowns = {}; // カードの待ち時間を管理する空の箱を作る
-        function runTurn() {
+// --- 2. ボタンや表示用の関数 ---
+function startMode(mode) {
+    console.log("🚀 Game Start: " + mode);
+    currentMode = mode;
+    // 重複実行を防ぐ
+    if(window.gameInterval) clearInterval(window.gameInterval);
+    window.gameInterval = setInterval(runTurn, 1000);
+    renderAgents();
+}
+
+function togglePause() {
+    st.paused = !st.paused;
+    addLog(st.paused ? "⏸ 一時停止" : "▶️ 再開", "#EAB308");
+}
+
+function showTab(tab) { console.log("Tab: " + tab); }
+
+function fmt(n) { return Math.floor(n).toLocaleString(); }
+
+function addLog(msg, color) {
+    const l = document.getElementById('log');
+    if(l) {
+        l.innerHTML += `<div style="color:${color}; margin-bottom:2px;">${msg}</div>`;
+        l.scrollTop = l.scrollHeight;
+    }
+}
+
+// --- 3. ランキング表示 (Leaderboard) ---
+function updateLB() {
+    let lb = document.getElementById('leaderboard');
+    if(!lb) {
+        lb = document.createElement('div');
+        lb.id = 'leaderboard';
+        lb.style = "position:fixed; top:20px; right:20px; background:rgba(0,0,0,0.8); padding:10px; border:1px solid #444; color:white; font-family:monospace; min-width:120px; z-index:100;";
+        document.body.appendChild(lb);
+    }
+    const sorted = [...agents].sort((a, b) => b.wealthUSD - a.wealthUSD);
+    lb.innerHTML = '<div style="border-bottom:1px solid #666; margin-bottom:5px; font-weight:bold;">RANKING</div>' + 
+        sorted.map((a, i) => `<div>${i+1}. ${a.emoji} $${fmt(a.wealthUSD)}</div>`).join('');
+}
+
+// --- 4. エージェントの移動と描画 ---
+function moveAgents() {
+    agents.forEach(a => {
+        a.x += (Math.random() - 0.5) * 60;
+        a.y += (Math.random() - 0.5) * 60;
+        a.x = Math.max(10, Math.min(350, a.x));
+        a.y = Math.max(10, Math.min(250, a.y));
+    });
+    renderAgents();
+}
+
+function renderAgents() {
+    const ar = document.getElementById('arena');
+    if(!ar) return;
+    ar.innerHTML = '';
+    agents.forEach(a => {
+        const d = document.createElement('div');
+        d.style = `position:absolute; left:${a.x}px; top:${a.y}px; font-size:32px; transition: all 0.5s ease-out;`;
+        d.textContent = a.emoji;
+        ar.appendChild(d);
+    });
+}
+
+// --- 5. メインエンジン (runTurn) ---
+function runTurn() {
     if (st.paused) return;
     st.turn++;
 
-    // 1. エージェントの状態を更新
-    glitchState.agents = agents;
-    agents.forEach(a => a.prevW = a.wealthUSD);
-
-    // 2. クールダウンの処理
-    Object.keys(cardCooldowns).forEach(k => {
-        if (cardCooldowns[k] > 0) cardCooldowns[k]--;
+    // セーフティネット (破産防止)
+    agents.forEach(a => { 
+        if(a.wealthUSD < 10) {
+            a.wealthUSD = 50; 
+            addLog(`🏦 中央銀行が ${a.emoji}${a.name} を救済! (+$50)`, "#EAB308");
+        }
     });
 
-    // 3. Ariaのバグ判定 (祝杯モード)
+    // Ariaのバグ判定
     const aria = agents.find(a => a.id === 'aria');
-    if (aria && aria.wealthUSD >= 200) {
-        addLog("🍾 Aria: Too rich! Going to party... 🥂", "#FCD34D");
-        aria.wealthUSD -= 60; 
-        moveAgents(); // バグっていても位置だけは更新
+    if (aria && aria.wealthUSD >= 250) {
+        addLog(`🍾 Aria: 儲けすぎたわ！飲みに行く！🥂`, "#FCD34D");
+        aria.wealthUSD -= 80; // 豪遊代
+        moveAgents();
+        updateLB();
         return; 
     }
 
-    // 4. 経済ロジック (奪い合い)
+    // 取引ロジック (奪い合い)
     const actor = agents[Math.floor(Math.random() * agents.length)];
-    const others = agents.filter(a => a.id !== actor.id);
-    const target = others[Math.floor(Math.random() * others.length)]; 
-    const good = GOODS[Math.floor(Math.random() * GOODS.length)]; 
+    const target = agents.find(a => a.id !== actor.id);
+    const good = GOODS[Math.floor(Math.random() * GOODS.length)];
+    const amount = Math.floor(Math.random() * 40) + 10;
 
-    const amount = Math.floor(Math.random() * 40) + 10; 
-
-    // 資産の移動
     actor.wealthUSD += amount;
     target.wealthUSD -= amount;
 
-    // ログ出力
-    addLog(`${actor.emoji} ${actor.name} bought ${good} from ${target.emoji} ${target.name}: +$${amount}`, "#15803D");
-    addLog(`   💸 ${target.name} is now $${fmt(target.wealthUSD)}`, "#DC2626");
+    addLog(`${actor.emoji}${actor.name}が${target.name}から${good}を購入: +$${amount}`, "#10b981");
+    addLog(`   💸 ${target.name}の残高: $${fmt(target.wealthUSD)}`, "#f87171");
 
-        // 資産が20ドル以下になったら、中央銀行が補助金を出して救済する
-    agents.forEach(a => { if(a.wealthUSD < 20) a.wealthUSD = 20; });
-        
-    // 5. 画面更新
-    if (typeof moveAgents === 'function') moveAgents();
-    if (typeof updateLB === 'function') updateLB();
-    if (typeof updateMetrics === 'function') updateMetrics();
-    if (typeof updateChart === 'function') updateChart();
-}
-
-        // --- 3. 足りない関数を埋める ---
-        function startMode(mode) {
-            console.log("Game Start: " + mode);
-            setInterval(runTurn, 1000); // 1秒ごとに実行開始
-            renderAgents();
-        }
-
-        function showTab(tab) { console.log("Tab: " + tab); }
-        function addLog(msg, color) { 
-            const l = document.getElementById('log');
-            l.innerHTML += `<div style="color:${color}">${msg}</div>`;
-            l.scrollTop = l.scrollHeight;
-        }
-        function fmt(n) { return Math.floor(n).toLocaleString(); }
-        function moveAgents() {
-            agents.forEach(a => {
-        // 現在の位置にランダムな動きを加える
-        a.x += (Math.random() - 0.5) * 40;
-        a.y += (Math.random() - 0.5) * 40;
-
-        // アリーナ（400x300）からはみ出さないようにガード
-        a.x = Math.max(10, Math.min(360, a.x));
-        a.y = Math.max(10, Math.min(260, a.y));
-    });
-    // 画面上の絵文字の位置を更新する
-    renderAgents();
-        }
-        function updateLB() {} function updateMetrics() {} function updateChart() {}
-        function showBubble(a, m, c) { addLog(`[Bubble] ${a.name}: ${m}`, c); }
-
-        function renderAgents() {
-            const ar = document.getElementById('arena');
-            ar.innerHTML = '';
-            agents.forEach(a => {
-                const d = document.createElement('div');
-                d.className = 'agent';
-                d.style.left = a.x + 'px'; d.style.top = a.y + 'px';
-                d.textContent = a.emoji;
-                ar.appendChild(d);
-            });
-        }
-        function togglePause() {
-    st.paused = !st.paused; 
-    console.log("Paused:", st.paused);
-}
+    moveAgents();
+    updateLB();
+}   
     </script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Agenomics Core | Manipulation v1.1</title>
+    <title>Agenomics Core | Global Exchange v1.2</title>
     <style>
         :root {
             --bg: #050508; --card: #12121a; --accent: #4cc9f0;
@@ -13,62 +13,69 @@
             font-family: 'JetBrains Mono', monospace; margin: 0;
             display: grid;
             grid-template-columns: 240px 1fr 240px;
-            grid-template-rows: 60px 1fr 180px;
+            grid-template-rows: 60px 1fr 200px;
             grid-template-areas: "header header header" "nav arena rank" "footer footer footer";
             height: 100vh; overflow: hidden;
         }
         h1 { grid-area: header; margin: 0; display: flex; align-items: center; padding-left: 20px; font-size: 0.9rem; color: var(--accent); border-bottom: 1px solid rgba(76, 201, 240, 0.2); letter-spacing: 2px; }
         .controls { grid-area: nav; padding: 20px; background: var(--card); border-right: 1px solid rgba(76, 201, 240, 0.1); display: flex; flex-direction: column; gap: 10px; }
-        #arena { grid-area: arena; position: relative; background: #08080c; margin: 10px; border-radius: 4px; border: 1px solid rgba(76, 201, 240, 0.1); overflow: hidden; transition: background 0.3s; }
+        #arena { grid-area: arena; position: relative; background: #08080c; margin: 10px; border-radius: 4px; border: 1px solid rgba(76, 201, 240, 0.1); overflow: hidden; }
         #leaderboard { grid-area: rank; padding: 20px; background: var(--card); border-left: 1px solid rgba(76, 201, 240, 0.1); }
-        #log { grid-area: footer; background: #000; margin: 0 10px 10px 10px; padding: 12px; border-radius: 2px; overflow-y: auto; font-size: 0.75rem; border-top: 1px solid var(--accent); }
+        #log { grid-area: footer; background: #000; margin: 0 10px 10px 10px; padding: 12px; border-radius: 2px; overflow-y: auto; font-size: 0.7rem; border-top: 1px solid var(--accent); }
         
         .btn { padding: 8px; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 2px; cursor: pointer; text-align: center; font-size: 0.65rem; font-weight: bold; transition: 0.2s; text-transform: uppercase; }
         .btn:hover { background: var(--accent); color: var(--bg); }
         .btn.card { border-color: var(--yellow); color: var(--yellow); margin-top: 5px; }
-        .btn.card:hover { background: var(--yellow); color: var(--bg); }
         .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
         .agent { position: absolute; font-size: 38px; transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1); user-select: none; z-index: 10; }
         .bubble { position: absolute; background: var(--card); border: 1px solid var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 0.6rem; bottom: 50px; left: 50%; transform: translateX(-50%); white-space: nowrap; z-index: 20; }
-        .stat-box { margin-bottom: 20px; padding: 10px; border: 1px solid #222; font-size: 0.7rem; color: var(--yellow); }
+        .stat-box { margin-bottom: 10px; padding: 8px; border: 1px solid #222; font-size: 0.65rem; color: var(--yellow); line-height: 1.4; }
+        .rates-list { font-size: 0.65rem; color: var(--accent); margin-top: 10px; }
     </style>
 </head>
 <body>
-    <h1>AGENOMICS_SYSTEM_V1.1 // MANIPULATION_ACTIVE</h1>
+    <h1>AGENOMICS_CORE_V1.2 // MULTI_CURRENCY_FX_ACTIVE</h1>
     <nav class="controls">
         <div class="stat-box">POINTS: <span id="player-points">0</span></div>
-        <div class="btn" onclick="startMode('normal')">RUN_SIMULATION</div>
+        <div class="btn" onclick="startMode()">RUN_SIMULATION</div>
         <div class="btn" onclick="togglePause()">PAUSE/RESUME</div>
+        
+        <div class="rates-list" id="fx-rates">
+            --- FX_RATES ---<br>
+            LOADING...
+        </div>
+
         <hr style="width:100%; border:0; border-top:1px solid #222; margin:10px 0;">
-        <div style="font-size:0.6rem; color:var(--accent)">MANIPULATION_TOOLS</div>
-        <button id="card-crash" class="btn card" onclick="triggerEvent('CRASH')" disabled>EXECUTE_CRASH (5pts)</button>
-        <button id="card-pump" class="btn card" onclick="triggerEvent('PUMP')" disabled>EXECUTE_PUMP (5pts)</button>
+        <button id="card-crash" class="btn card" onclick="triggerEvent('CRASH')" disabled>MARKET_CRASH (5pts)</button>
+        <button id="card-pump" class="btn card" onclick="triggerEvent('PUMP')" disabled>MARKET_PUMP (5pts)</button>
         <button id="card-tax" class="btn card" onclick="triggerEvent('WHALE_TAX')" disabled>WHALE_TAX (8pts)</button>
     </nav>
     <main id="arena"></main>
     <aside id="leaderboard">
-        <div style="color:var(--accent); font-size:0.8rem; font-weight:bold; margin-bottom:15px;">LIVE_RANKINGS</div>
+        <div style="color:var(--accent); font-size:0.8rem; font-weight:bold; margin-bottom:15px;">NET_WORTH (USD)</div>
         <div id="rank-list"></div>
     </aside>
-    <footer id="log">READY_FOR_DEPLOYMENT...</footer>
+    <footer id="log">FX_ENGINE_READY...</footer>
 
     <script>
         let st = { paused: false, turn: 0, points: 0 };
+        // 5 currencies: USD(Base), JPY, EUR, BTC, GOLD
+        let rates = { USD: 1, JPY: 150, EUR: 0.92, BTC: 0.000015, GOLD: 0.00045 };
+        
         let agents = [
-            { id: 'aria', name: 'ARIA', emoji: '💃', wealthUSD: 100, x: 100, y: 100 },
-            { id: 'bolt', name: 'BOLT', emoji: '⚡', wealthUSD: 100, x: 200, y: 100 },
-            { id: 'coda', name: 'CODA', emoji: '🎹', wealthUSD: 100, x: 300, y: 100 },
-            { id: 'dex',  name: 'DEX',  emoji: '🤖', wealthUSD: 100, x: 100, y: 200 },
-            { id: 'echo', name: 'ECHO', emoji: '📈', wealthUSD: 100, x: 200, y: 200 }
+            { id: 'aria', name: 'ARIA', emoji: '💃', x: 100, y: 100, wallet: { USD: 100, JPY: 0, BTC: 0 } },
+            { id: 'bolt', name: 'BOLT', emoji: '⚡', x: 200, y: 100, wallet: { USD: 100, EUR: 0, GOLD: 0 } },
+            { id: 'coda', name: 'CODA', emoji: '🎹', x: 300, y: 100, wallet: { USD: 100, JPY: 0, EUR: 0 } },
+            { id: 'dex',  name: 'DEX',  emoji: '🤖', x: 100, y: 200, wallet: { USD: 50, BTC: 0.001, GOLD: 0 } },
+            { id: 'echo', name: 'ECHO', emoji: '📈', x: 200, y: 200, wallet: { USD: 50, JPY: 10000, BTC: 0 } }
         ];
-        let GOODS = ["EQUITIES", "CRYPTO", "GOLD", "FOREX"];
 
         function startMode() {
             if(window.gameInterval) clearInterval(window.gameInterval);
             window.gameInterval = setInterval(runTurn, 800);
             renderAgents();
-            addLog("SYSTEM_ONLINE: MONITOR_AND_MANIPULATE", "#4cc9f0");
+            addLog("SYSTEM_START: FX_ECONOMY_ENABLED", "#4cc9f0");
         }
 
         function togglePause() { st.paused = !st.paused; addLog(st.paused ? "!! HALTED" : ">> RESUMED", "#ffd166"); }
@@ -94,73 +101,60 @@
 
         function drawLine(from, to) {
             const c = document.getElementById('trade-canvas'); if(!c) return;
-            const ctx = c.getContext('2d');
-            ctx.strokeStyle = '#4cc9f0'; ctx.lineWidth = 2; ctx.beginPath();
-            ctx.moveTo(from.x + 20, from.y + 20); ctx.lineTo(to.x + 20, to.y + 20);
+            const ctx = c.getContext('2d'); ctx.strokeStyle = '#4cc9f0'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(from.x + 20, from.y + 20); ctx.lineTo(to.x + 20, to.y + 20);
             ctx.stroke(); setTimeout(() => ctx.clearRect(0,0,c.width,c.height), 200);
         }
 
-        function showBubble(id, txt) {
-            const el = document.getElementById('agent-' + id); if(!el) return;
-            const b = document.createElement('div'); b.className = 'bubble'; b.textContent = txt;
-            el.appendChild(b); setTimeout(() => b.remove(), 1200);
+        function getWealthUSD(agent) {
+            return Object.keys(agent.wallet).reduce((total, cur) => total + (agent.wallet[cur] / rates[cur]), 0);
         }
 
         function updateLB() {
             const list = document.getElementById('rank-list');
-            const sorted = [...agents].sort((a, b) => b.wealthUSD - a.wealthUSD);
-            list.innerHTML = sorted.map((a, i) => `<div>${i+1}. ${a.emoji} $${Math.floor(a.wealthUSD)}</div>`).join('');
+            const sorted = [...agents].sort((a, b) => getWealthUSD(b) - getWealthUSD(a));
+            list.innerHTML = sorted.map((a, i) => `<div>${i+1}. ${a.emoji} $${Math.floor(getWealthUSD(a))}</div>`).join('');
+            
+            const fx = document.getElementById('fx-rates');
+            fx.innerHTML = `--- FX_RATES (Per $1) ---<br>` + 
+                `JPY: ¥${rates.JPY.toFixed(1)}<br>EUR: €${rates.EUR.toFixed(2)}<br>BTC: ₿${rates.BTC.toFixed(6)}<br>GOLD: ${rates.GOLD.toFixed(5)}oz`;
+            
             document.getElementById('player-points').textContent = st.points;
             document.getElementById('card-crash').disabled = st.points < 5;
             document.getElementById('card-pump').disabled = st.points < 5;
             document.getElementById('card-tax').disabled = st.points < 8;
         }
 
-        function triggerEvent(type) {
-            const ar = document.getElementById('arena');
-            if (type === 'CRASH') {
-                st.points -= 5;
-                agents.forEach(a => a.wealthUSD *= 0.7);
-                addLog("!! MANUAL_INTERVENTION: MARKET_CRASH_EXECUTED", "#ef476f");
-                ar.style.background = "#200"; setTimeout(() => ar.style.background = "#08080c", 500);
-            } else if (type === 'PUMP') {
-                st.points -= 5;
-                agents.forEach(a => a.wealthUSD *= 1.3);
-                addLog(">> MANUAL_INTERVENTION: MARKET_PUMP_EXECUTED", "#06d6a0");
-                ar.style.background = "#020"; setTimeout(() => ar.style.background = "#08080c", 500);
-            } else if (type === 'WHALE_TAX') {
-                st.points -= 8;
-                const sorted = [...agents].sort((a,b) => b.wealthUSD - a.wealthUSD);
-                const whale = sorted[0];
-                const tax = whale.wealthUSD * 0.4;
-                whale.wealthUSD -= tax;
-                agents.forEach(a => { if(a.id !== whale.id) a.wealthUSD += tax/4; });
-                addLog(`[TAX] $${Math.floor(tax)} REPOSSESSED FROM ${whale.name}`, "#ffd166");
-                showBubble(whale.id, "TAXED! 💸");
-            }
-            updateLB();
-        }
-
         function runTurn() {
             if (st.paused) return;
             st.turn++;
 
-            // Earn points every 10 turns
-            if (st.turn % 10 === 0) { st.points += 2; addLog("[DIVIDENDS] +2 INTERVENTION_POINTS EARNED", "#ffd166"); }
+            // 1. Shift FX Rates
+            rates.JPY += (Math.random() - 0.5) * 2;
+            rates.EUR += (Math.random() - 0.5) * 0.02;
+            rates.BTC *= (1 + (Math.random() - 0.5) * 0.1);
+            rates.GOLD *= (1 + (Math.random() - 0.5) * 0.05);
 
-            // Random bailout
-            agents.forEach(a => { if(a.wealthUSD < 20) { a.wealthUSD = 60; showBubble(a.id, "RESCUED! 🏦"); } });
+            if (st.turn % 10 === 0) st.points += 2;
 
+            // 2. Transaction
             const actor = agents[Math.floor(Math.random() * agents.length)];
             const target = agents.filter(a => a.id !== actor.id)[Math.floor(Math.random()*4)];
-            const amount = Math.floor(Math.random() * 40) + 10;
+            
+            const amountUSD = Math.floor(Math.random() * 40) + 10;
+            const currencies = Object.keys(actor.wallet);
+            const mainCur = currencies[Math.floor(Math.random() * currencies.length)];
 
-            actor.wealthUSD += amount;
-            target.wealthUSD -= amount;
+            // Actor gains, Target loses (in their respective currencies)
+            actor.wallet[mainCur] += amountUSD * rates[mainCur];
+            target.wallet["USD"] -= amountUSD; // Target pays in USD for simplicity here
 
             drawLine(actor, target);
-            addLog(`${actor.name} > ${target.name} | +$${amount}`, "#06d6a0");
+            addLog(`${actor.name} gained +$${amountUSD} in ${mainCur}`, "#06d6a0");
             
+            // Random bailouts
+            agents.forEach(a => { if(getWealthUSD(a) < 20) { a.wallet.USD += 50; addLog(`[RESCUE] INJECTED $50 INTO ${a.name}`, "#ffd166"); } });
+
             // Move agents
             const ar = document.getElementById('arena');
             agents.forEach(a => {
@@ -170,6 +164,17 @@
                 const el = document.getElementById('agent-' + a.id);
                 if(el) { el.style.left = a.x + 'px'; el.style.top = a.y + 'px'; }
             });
+            updateLB();
+        }
+
+        function triggerEvent(type) {
+            if (type === 'WHALE_TAX') {
+                st.points -= 8;
+                const sorted = [...agents].sort((a,b) => getWealthUSD(b) - getWealthUSD(a));
+                const whale = sorted[0];
+                whale.wallet.USD -= getWealthUSD(whale) * 0.4;
+                addLog(`!! WHALE_TAX EXECUTED ON ${whale.name}`, "#ef476f");
+            }
             updateLB();
         }
     </script>

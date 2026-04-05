@@ -2,196 +2,175 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Agenomics Core v2.1 | Ultimate Sandbox</title>
+    <title>Agenomics Core v2.6 | Currency Freedom</title>
     <style>
-        :root {
-            --bg: #050508; --card: #101018; --accent: #4cc9f0;
-            --green: #06d6a0; --red: #ef476f; --yellow: #ffd166; --text: #e0e1dd;
-        }
-        body {
-            background-color: var(--bg); color: var(--text);
-            font-family: 'JetBrains Mono', monospace; margin: 0;
-            display: grid;
-            grid-template-columns: 280px 1fr 280px;
-            grid-template-rows: 60px 1fr 200px;
-            grid-template-areas: "header header header" "nav arena rank" "footer footer footer";
-            height: 100vh; overflow: hidden;
-        }
+        :root { --bg: #050508; --card: #0d0d14; --accent: #4cc9f0; --green: #06d6a0; --red: #ef476f; --yellow: #ffd166; --text: #e0e1dd; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; margin: 0; display: grid; grid-template-columns: 280px 1fr 280px; grid-template-rows: 60px 1fr 220px; grid-template-areas: "header header header" "nav arena rank" "footer footer footer"; height: 100vh; overflow: hidden; }
         h1 { grid-area: header; margin: 0; display: flex; align-items: center; padding-left: 20px; font-size: 0.85rem; color: var(--accent); border-bottom: 1px solid rgba(76,201,240,0.2); letter-spacing: 2px; }
-        .controls { grid-area: nav; padding: 15px; background: var(--card); border-right: 1px solid #222; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
-        #arena { grid-area: arena; position: relative; background: #08080c; margin: 10px; border-radius: 12px; border: 1px solid #222; overflow: hidden; transition: background 0.5s; }
+        .controls { grid-area: nav; padding: 15px; background: var(--card); border-right: 1px solid #222; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+        #arena { grid-area: arena; position: relative; background: radial-gradient(circle, #10101a 0%, #050508 100%); margin: 10px; border-radius: 12px; border: 1px solid #222; overflow: hidden; }
         #leaderboard { grid-area: rank; padding: 15px; background: var(--card); border-left: 1px solid #222; overflow-y: auto; }
         #log { grid-area: footer; background: #000; margin: 0 10px 10px 10px; padding: 12px; border-radius: 4px; overflow-y: auto; font-size: 0.7rem; border-top: 2px solid var(--accent); }
         
-        .btn { padding: 10px; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; cursor: pointer; text-align: center; font-size: 0.65rem; font-weight: bold; transition: 0.2s; text-transform: uppercase; }
-        .btn:hover:not(:disabled) { background: var(--accent); color: var(--bg); box-shadow: 0 0 15px var(--accent); }
-        .btn:disabled { opacity: 0.15; cursor: not-allowed; border-color: #444; color: #444; }
+        .selector-box { background: #000; border: 1px solid #333; padding: 10px; margin-bottom: 10px; }
+        .currency-btn { padding: 4px 8px; font-size: 0.6rem; border: 1px solid var(--accent); color: var(--accent); background: transparent; cursor: pointer; margin: 2px; }
+        .currency-btn.active { background: var(--accent); color: #000; }
+
+        .btn { padding: 8px; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; cursor: pointer; text-align: center; font-size: 0.6rem; font-weight: bold; transition: 0.2s; text-transform: uppercase; }
+        .btn:hover:not(:disabled) { background: var(--accent); color: var(--bg); box-shadow: 0 0 10px var(--accent); }
+        .btn:disabled { opacity: 0.1; cursor: not-allowed; }
         
-        .manual-box { font-size: 0.6rem; color: #666; line-height: 1.4; padding: 10px; background: #000; border: 1px solid #222; margin-top: 5px; }
-        .agent { position: absolute; font-size: 42px; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
-        .god-glow { filter: drop-shadow(0 0 20px var(--accent)) brightness(1.5); }
+        .agent { position: absolute; font-size: 38px; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; display: flex; flex-direction: column; align-items: center; }
+        .bubble { position: absolute; background: white; color: black; padding: 4px 10px; border-radius: 10px; font-size: 0.65rem; bottom: 65px; left: 50%; transform: translateX(-50%); white-space: nowrap; z-index: 20; font-weight: bold; box-shadow: 0 0 15px white; }
         canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
-        .fx-rate { font-size: 0.65rem; color: var(--yellow); margin-bottom: 5px; }
     </style>
 </head>
 <body>
-    <h1>AGENOMICS_CORE_V2.1 // THE_ULTIMATE_SANDBOX</h1>
+    <h1>AGENOMICS_ULTIMATE_V2.6 // CURRENCY_SELECT_ACTIVE</h1>
     <nav class="controls">
-        <div style="padding:10px; border:1px solid var(--accent); font-size:0.75rem; color:var(--yellow); text-align:center; font-weight:bold;">MANIPULATION_PTS: <span id="player-points">0</span></div>
+        <div class="selector-box">
+            <div style="font-size:0.55rem; color:#888; margin-bottom:5px;">BASE_CURRENCY</div>
+            <button class="currency-btn active" onclick="setBase('USD')">USD</button>
+            <button class="currency-btn" onclick="setBase('JPY')">JPY</button>
+            <button class="currency-btn" onclick="setBase('BTC')">BTC</button>
+            <button class="currency-btn" onclick="setBase('EUR')">EUR</button>
+        </div>
+        
+        <div style="padding:10px; border:1px solid var(--accent); font-size:0.7rem; color:var(--yellow); text-align:center;">PTS: <span id="player-points">0</span></div>
         <div class="btn" onclick="startMode(800)">RUN_NORMAL</div>
-        <div class="btn" onclick="startMode(150)">RUN_HYPER_SPEED</div>
+        <div class="btn" onclick="startMode(150)">HYPER_SPEED</div>
         <div class="btn" onclick="togglePause()">PAUSE/RESUME</div>
         
-        <div id="fx-display" class="manual-box" style="color:var(--accent)">
-            BTC: <span id="rate-btc">0.000015</span><br>
-            JPY: <span id="rate-jpy">150.0</span>
-        </div>
-
-        <hr style="width:100%; border:0; border-top:1px solid #333; margin:10px 0;">
-        <button id="card-moon" class="btn" style="border-color:var(--yellow); color:var(--yellow);" onclick="triggerEvent('BTC_PUMP')">BTC_PUMP (5pt)</button>
-        <button id="card-tax" class="btn" style="border-color:var(--red); color:var(--red);" onclick="triggerEvent('EQUILIBRIUM')">EQUILIBRIUM (8pt)</button>
+        <div style="font-size:0.6rem; color:var(--accent); margin-top:10px;">MARKET_RATES: <div id="rate-list"></div></div>
         
-        <div class="manual-box">
-            <b>[GUIDE]</b><br>
-            - Gain points every 10 turns.<br>
-            - $20k+ wealth triggers AI_GOD.<br>
-            - Equilibrium takes 40% from #1.<br>
-            - Use PUMP to spike BTC assets.
-        </div>
+        <hr style="width:100%; border:0; border-top:1px solid #333; margin:10px 0;">
+        <button id="card-moon" class="btn" style="color:var(--yellow); border-color:var(--yellow);" onclick="triggerEvent('BTC_PUMP')" disabled>BTC_PUMP (5pt)</button>
+        <button id="card-tax" class="btn" style="color:var(--red); border-color:var(--red);" onclick="triggerEvent('EQUILIBRIUM')" disabled>WHALE_TAX (8pt)</button>
     </nav>
-
     <main id="arena"></main>
     <aside id="leaderboard">
-        <div style="color:var(--accent); font-size:0.8rem; font-weight:bold; margin-bottom:15px; border-bottom:1px solid #222;">GLOBAL_RANKINGS</div>
-        <div id="rank-list"></div>
+        <div id="rank-list" style="font-size: 0.8rem; font-weight: bold; margin-bottom: 10px;">RANKING (<span id="base-symbol">$</span>)</div>
     </aside>
-    <footer id="log">SYSTEM_STABLE: AWAITING_GENESIS...</footer>
+    <footer id="log">AWAITING_CURRENCY_SELECTION...</footer>
 
     <script>
-        let st = { paused: false, turn: 0, points: 0, speed: 800 };
-        let rates = { USD: 1, JPY: 150, BTC: 0.000015 };
+        let st = { paused: false, turn: 0, points: 0, speed: 800, base: 'USD', symbol: '$' };
+        let rates = { USD: 1, JPY: 150, EUR: 0.92, BTC: 0.000015 };
+        const SYMBOLS = { USD: '$', JPY: '¥', BTC: '₿', EUR: '€' };
+        const DREAMS = [ {cost:500, e:"⌚"}, {cost:2000, e:"🏎️"}, {cost:10000, e:"🏰"}, {cost:40000, e:"🚀"} ];
         
         let agents = [
-            { id: 'aria', name: 'ARIA', emoji: '💃', x: 100, y: 100, wealth: 500, status: 'TRADER' },
-            { id: 'bolt', name: 'BOLT', emoji: '⚡', x: 300, y: 100, wealth: 500, status: 'TRADER' },
-            { id: 'coda', name: 'CODA', emoji: '🎹', x: 200, y: 200, wealth: 500, status: 'TRADER' },
-            { id: 'dex',  name: 'DEX',  emoji: '🤖', x: 50,  y: 250, wealth: 500, status: 'TRADER' },
-            { id: 'echo', name: 'ECHO', emoji: '📈', x: 350, y: 250, wealth: 500, status: 'TRADER' }
+            { id: 'aria', name: 'ARIA', emoji: '💃', x: 100, y: 100, wealth: 500, items: [], status: 'TRADER', staff: [] },
+            { id: 'bolt', name: 'BOLT', emoji: '⚡', x: 300, y: 100, wealth: 500, items: [], status: 'TRADER', staff: [] },
+            { id: 'coda', name: 'CODA', emoji: '🎹', x: 200, y: 200, wealth: 500, items: [], status: 'TRADER', staff: [] },
+            { id: 'dex',  name: 'DEX',  emoji: '🤖', x: 50,  y: 250, wealth: 500, status: 'TRADER', staff: [] },
+            { id: 'echo', name: 'ECHO', emoji: '📈', x: 350, y: 250, wealth: 500, items: [], status: 'TRADER', staff: [] }
         ];
 
-        function startMode(speed) {
-            st.speed = speed;
-            if(window.gameInterval) clearInterval(window.gameInterval);
-            window.gameInterval = setInterval(runTurn, st.speed);
-            renderAgents();
-            addLog("!! CORE_PROTOCOL_V2.1: ONLINE", "#4cc9f0");
+        function setBase(curr) {
+            st.base = curr;
+            st.symbol = SYMBOLS[curr];
+            document.querySelectorAll('.currency-btn').forEach(b => {
+                b.classList.toggle('active', b.innerText === curr);
+            });
+            document.getElementById('base-symbol').textContent = st.symbol;
+            addLog(`BASE_CURRENCY_SET: ${curr}`, "var(--accent)");
+            updateUI();
         }
 
-        function togglePause() { st.paused = !st.paused; addLog(st.paused ? "!! PAUSED" : ">> RESUMED", "#ffd166"); }
-
-        function addLog(msg, color) {
-            const l = document.getElementById('log');
-            l.innerHTML += `<div style="color:${color}">[${new Date().toLocaleTimeString('en-US',{hour12:false})}] ${msg}</div>`;
-            l.scrollTop = l.scrollHeight;
+        function startMode(s) { 
+            st.speed = s; 
+            if(window.gameInterval) clearInterval(window.gameInterval); 
+            window.gameInterval = setInterval(runTurn, st.speed); 
+            renderAgents(); 
+            addLog("!! EMPIRE_ENGINE_RUNNING", "#4cc9f0"); 
         }
 
+        function togglePause() { st.paused = !st.paused; }
+        function addLog(msg, color) { const l = document.getElementById('log'); l.innerHTML += `<div style="color:${color}">[${new Date().toLocaleTimeString('en-US',{hour12:false})}] ${msg}</div>`; l.scrollTop = l.scrollHeight; }
+        function showBubble(id, txt) { const el = document.getElementById('agent-'+id); if(el){ const b = document.createElement('div'); b.className='bubble'; b.textContent=txt; el.appendChild(b); setTimeout(()=>b.remove(),1500); } }
+        
         function renderAgents() {
-            const ar = document.getElementById('arena');
-            ar.innerHTML = '<canvas id="trade-canvas"></canvas>';
-            const c = document.getElementById('trade-canvas');
-            c.width = ar.clientWidth; c.height = ar.clientHeight;
+            const ar = document.getElementById('arena'); ar.innerHTML = '<canvas id="trade-canvas"></canvas>';
+            const c = document.getElementById('trade-canvas'); c.width = ar.clientWidth; c.height = ar.clientHeight;
             agents.forEach(a => {
-                const d = document.createElement('div');
-                d.className = 'agent'; d.id = 'agent-' + a.id;
-                d.innerHTML = `<div id="tag-${a.id}" style="font-size:9px;color:var(--accent)"></div><div>${a.emoji}</div>`;
+                const d = document.createElement('div'); d.className='agent'; d.id='agent-' + a.id;
+                d.innerHTML = `<div id="tag-${a.id}"></div><div>${a.emoji}</div><div id="inv-${a.id}"></div>`;
                 ar.appendChild(d);
             });
         }
 
+        function drawBeam(from, to, color) {
+            const c = document.getElementById('trade-canvas'); if(!c) return; const ctx = c.getContext('2d');
+            ctx.strokeStyle = color || '#4cc9f0'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(from.x+25, from.y+25); ctx.lineTo(to.x+25, to.y+25); ctx.stroke();
+            setTimeout(()=>ctx.clearRect(0,0,c.width,c.height), 150);
+        }
+
+        function getWealthInBase(a) {
+            // Internally wealth is stored in USD, convert to base on display
+            return a.wealth * rates[st.base];
+        }
+
+        function runTurn() {
+            if(st.paused) return; st.turn++;
+            if(st.turn % 10 === 0) { st.points++; updateUI(); }
+            
+            // Random FX shifts
+            rates.BTC *= (1 + (Math.random()-0.5)*0.1);
+            rates.JPY += (Math.random()-0.5)*1.5;
+
+            const actives = agents.filter(a => a.status !== 'GOD');
+            const actor = actives[Math.floor(Math.random()*actives.length)];
+            const target = actives.find(t => t.id !== actor.id);
+            let profit = Math.floor(Math.random()*150)+50;
+
+            actor.wealth += profit; target.wealth -= profit;
+            drawBeam(actor, target);
+            addLog(`${actor.name} earned ${st.symbol}${Math.floor(profit * rates[st.base])}`, "#06d6a0");
+
+            // Luxury & Status
+            actives.forEach(a => {
+                const baseWealth = getWealthInBase(a);
+                if(baseWealth > 50000) a.status = 'GOD';
+                else if(baseWealth > 5000 && a.status === 'TRADER') a.status = 'CEO';
+                
+                const dream = DREAMS.find(d => a.wealth > d.cost && !a.items.includes(d.e));
+                if(dream) { a.items.push(dream.e); showBubble(a.id, `Bought ${dream.e}!`); }
+            });
+
+            // Physics & Draw
+            const ar = document.getElementById('arena');
+            agents.forEach(a => {
+                const el = document.getElementById('agent-'+a.id);
+                if(a.status === 'GOD') { a.emoji = '🌐'; return; }
+                a.x += (Math.random()-0.5)*120; a.y += (Math.random()-0.5)*120;
+                a.x = Math.max(30, Math.min(ar.clientWidth-60, a.x)); a.y = Math.max(30, Math.min(ar.clientHeight-60, a.y));
+                if(el){ el.style.left = a.x+'px'; el.style.top = a.y+'px'; }
+            });
+            updateUI();
+        }
+
         function updateUI() {
-            const list = document.getElementById('rank-list');
-            const sorted = [...agents].sort((a, b) => b.wealth - a.wealth);
-            list.innerHTML = sorted.map((a, i) => `
-                <div style="border-bottom:1px solid #222; padding:8px 0; font-size:0.75rem;">
-                    ${i+1}. ${a.emoji} <b>$${Math.floor(a.wealth)}</b><br>
-                    <span style="font-size:9px; color:#888;">${a.status}</span>
-                </div>
-            `).join('');
+            const sorted = [...agents].sort((a,b)=>b.wealth - a.wealth);
+            document.getElementById('rank-list').innerHTML = `<div style="margin-bottom:10px;">RANKING (${st.base})</div>` + 
+                sorted.map((a,i)=>`<div style="margin-bottom:8px;">${i+1}. ${a.emoji} ${st.symbol}${Math.floor(getWealthInBase(a))} <br><span style="font-size:9px;color:#555;">${a.status}</span></div>`).join('');
             
+            document.getElementById('rate-list').innerHTML = `BTC: ${rates.BTC.toFixed(6)} | JPY: ${rates.JPY.toFixed(1)}`;
             document.getElementById('player-points').textContent = st.points;
-            document.getElementById('rate-btc').textContent = rates.BTC.toFixed(6);
-            document.getElementById('rate-jpy').textContent = rates.JPY.toFixed(1);
-            
-            // 重要: ボタンの活性化を明示的にチェック
             document.getElementById('card-moon').disabled = st.points < 5;
             document.getElementById('card-tax').disabled = st.points < 8;
         }
 
-        function drawBeam(from, to, color) {
-            const c = document.getElementById('trade-canvas'); if(!c) return;
-            const ctx = c.getContext('2d');
-            ctx.strokeStyle = color || '#4cc9f0'; ctx.lineWidth = 3; ctx.shadowBlur = 10; ctx.shadowColor = ctx.strokeStyle;
-            ctx.beginPath(); ctx.moveTo(from.x + 25, from.y + 25); ctx.lineTo(to.x + 25, to.y + 25);
-            ctx.stroke(); setTimeout(() => ctx.clearRect(0,0,c.width,c.height), 150);
-        }
-
         function triggerEvent(t) {
-            const ar = document.getElementById('arena');
-            if (t === 'BTC_PUMP' && st.points >= 5) {
-                st.points -= 5; rates.BTC *= 0.5; // Value doubles
-                addLog("🚀 MANIPULATION: BTC MOONSHOT EXECUTED!", "#06d6a0");
-                ar.style.background = "#020"; setTimeout(()=>ar.style.background="#08080c", 500);
-            } else if (t === 'EQUILIBRIUM' && st.points >= 8) {
-                st.points -= 8;
-                const sorted = [...agents].sort((a,b)=>b.wealth-a.wealth);
-                const whale = sorted[0]; const tax = whale.wealth * 0.4;
-                whale.wealth -= tax; agents.forEach(a => a.wealth += tax/5);
-                addLog(`⚖️ MANIPULATION: $${Math.floor(tax)} REPOSSESSED FROM ${whale.name}`, "#ef476f");
-                ar.style.background = "#200"; setTimeout(()=>ar.style.background="#08080c", 500);
+            if(t==='BTC_PUMP') { rates.BTC *= 5; st.points -= 5; addLog("🚀 BTC SKYROCKETED!", "#06d6a0"); }
+            if(t==='EQUILIBRIUM') { 
+                st.points -= 8; 
+                const w = [...agents].sort((a,b)=>b.wealth-a.wealth); 
+                const tax = w.wealth*0.5; w.wealth-=tax; 
+                agents.forEach(a=>a.wealth+=tax/5); 
+                addLog("⚖️ WHALE_TAX EXECUTED", "var(--red)"); 
             }
-            updateUI();
-        }
-
-        function runTurn() {
-            if (st.paused) return;
-            st.turn++;
-            if (st.turn % 10 === 0) { st.points += 2; updateUI(); }
-
-            // Dynamic Rates
-            rates.BTC *= (1 + (Math.random() - 0.5) * 0.1);
-            rates.JPY += (Math.random() - 0.5) * 1.5;
-
-            // Ascension Check
-            agents.forEach(a => {
-                if (a.wealth > 20000 && a.status !== 'AI_GOD') {
-                    a.status = 'AI_GOD'; a.emoji = '🌐';
-                    addLog(`🌟 ASCENSION: ${a.name} EVOLVED INTO AI_GOD`, "var(--yellow)");
-                    document.getElementById('agent-'+a.id).classList.add('god-glow');
-                }
-            });
-
-            const actives = agents.filter(a => a.status !== 'AI_GOD');
-            if (actives.length < 2) return;
-
-            const actor = actives[Math.floor(Math.random() * actives.length)];
-            const target = actives.find(t => t.id !== actor.id);
-            const amount = Math.floor(Math.random() * 150) + 50;
-
-            actor.wealth += amount;
-            target.wealth -= amount;
-            drawBeam(actor, target);
-            addLog(`${actor.name} captured +$${amount} from ${target.name}`, "#06d6a0");
-
-            // Move
-            const ar = document.getElementById('arena');
-            agents.forEach(a => {
-                const el = document.getElementById('agent-' + a.id);
-                if (a.status === 'AI_GOD') return;
-                a.x += (Math.random() - 0.5) * 120; a.y += (Math.random() - 0.5) * 120;
-                a.x = Math.max(30, Math.min(ar.clientWidth - 60, a.x));
-                a.y = Math.max(30, Math.min(ar.clientHeight - 60, a.y));
-                if(el) { el.style.left = a.x + 'px'; el.style.top = a.y + 'px'; }
-            });
             updateUI();
         }
     </script>

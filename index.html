@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Agenomics Core v2.9 | Stable Integration</title>
+    <title>Agenomics Core v3.0 | CEO Empire & Resilience</title>
     <style>
         :root { --bg: #050508; --card: #0d0d14; --accent: #4cc9f0; --green: #06d6a0; --red: #ef476f; --yellow: #ffd166; --text: #e0e1dd; }
         body { background-color: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; margin: 0; display: grid; grid-template-columns: 280px 1fr 280px; grid-template-rows: 60px 1fr 220px; grid-template-areas: "header header header" "nav arena rank" "footer footer footer"; height: 100vh; overflow: hidden; }
@@ -18,13 +18,14 @@
         .btn:hover:not(:disabled) { background: var(--accent); color: var(--bg); }
         .btn:disabled { opacity: 0.1; cursor: not-allowed; }
         .agent { position: absolute; font-size: 40px; transition: all 0.7s ease-out; z-index: 10; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+        .ceo-tag { font-size: 10px; background: var(--yellow); color: black; padding: 1px 4px; border-radius: 3px; font-weight: bold; margin-bottom: 2px; box-shadow: 0 0 8px var(--yellow); }
         .inventory { display: flex; gap: 2px; font-size: 12px; margin-top: -5px; }
         .bubble { position: absolute; background: white; color: black; padding: 4px 10px; border-radius: 10px; font-size: 0.65rem; bottom: 65px; left: 50%; transform: translateX(-50%); white-space: nowrap; z-index: 20; font-weight: bold; box-shadow: 0 0 15px white; }
         canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
     </style>
 </head>
 <body>
-    <h1>AGENOMICS_CORE_V2.9 // STABLE_STREAMS</h1>
+    <h1>AGENOMICS_V3.0 // CORPORATE_EVOLUTION</h1>
     <nav class="controls">
         <div class="selector-box">
             <div style="font-size:0.5rem; color:#888; margin-bottom:4px;">BASE_CURRENCY</div>
@@ -37,27 +38,27 @@
         <div class="btn" onclick="startMode(800)">RUN_NORMAL</div>
         <div class="btn" onclick="startMode(150)">HYPER_SPEED</div>
         <div class="btn" onclick="togglePause()">PAUSE/RESUME</div>
-        <div style="font-size:0.6rem; color:var(--accent); margin-top:10px;">FX: <span id="fx-status"></span></div>
+        <div style="font-size:0.6rem; color:var(--accent); margin-top:10px;">FX_LIVE: <span id="fx-status"></span></div>
         <hr style="width:100%; border:0; border-top:1px solid #333; margin:10px 0;">
         <button id="card-moon" class="btn" style="color:var(--yellow); border-color:var(--yellow);" onclick="triggerEvent('BTC_PUMP')" disabled>BTC_PUMP (5pt)</button>
         <button id="card-tax" class="btn" style="color:var(--red); border-color:var(--red); margin-top:5px;" onclick="triggerEvent('EQUILIBRIUM')" disabled>WHALE_TAX (8pt)</button>
     </nav>
     <main id="arena"></main>
     <aside id="leaderboard"><div id="rank-list" style="font-size: 0.8rem; font-weight: bold;"></div></aside>
-    <footer id="log">SYSTEM_STABILIZED...</footer>
+    <footer id="log">SYSTEM_V3_REBOOTED...</footer>
 
     <script>
         let st = { paused: false, turn: 0, points: 0, speed: 800, base: 'USD', symbol: '$', isBubble: false };
         let rates = { USD: 1, JPY: 150.0, EUR: 0.92, BTC: 0.000015 };
         const SYMBOLS = { USD: '$', JPY: '¥', BTC: '₿', EUR: '€' };
-        const DREAMS = [ {c:500, e:"⌚"}, {c:2000, e:"🏎️"}, {c:10000, e:"🏰"}, {c:50000, e:"🚀"} ];
+        const DREAMS = [ {c:200, e:"⌚"}, {c:1000, e:"🏎️"}, {c:5000, e:"🏰"}, {c:20000, e:"🚀"} ];
         
         let agents = [
-            { id: 'aria', name: 'ARIA', emoji: '💃', x: 100, y: 100, wealthUSD: 500, items: [], status: 'TRADER' },
-            { id: 'bolt', name: 'BOLT', emoji: '⚡', x: 300, y: 100, wealthUSD: 500, items: [], status: 'TRADER' },
-            { id: 'coda', name: 'CODA', emoji: '🎹', x: 200, y: 200, wealthUSD: 500, items: [], status: 'TRADER' },
-            { id: 'dex',  name: 'DEX',  emoji: '🤖', x: 50,  y: 250, wealthUSD: 500, items: [], status: 'TRADER' },
-            { id: 'echo', name: 'ECHO', emoji: '📈', x: 350, y: 250, wealthUSD: 500, items: [], status: 'TRADER' }
+            { id: 'aria', name: 'ARIA', emoji: '💃', x: 100, y: 100, wealthUSD: 500, items: [], status: 'TRADER', staff: [] },
+            { id: 'bolt', name: 'BOLT', emoji: '⚡', x: 300, y: 100, wealthUSD: 500, items: [], status: 'TRADER', staff: [] },
+            { id: 'coda', name: 'CODA', emoji: '🎹', x: 200, y: 200, wealthUSD: 500, items: [], status: 'TRADER', staff: [] },
+            { id: 'dex',  name: 'DEX',  emoji: '🤖', x: 50,  y: 250, wealthUSD: 500, status: 'TRADER', staff: [] },
+            { id: 'echo', name: 'ECHO', emoji: '📈', x: 350, y: 250, wealthUSD: 500, items: [], status: 'TRADER', staff: [] }
         ];
 
         function setBase(curr) {
@@ -69,30 +70,20 @@
         function startMode(s) { 
             st.speed = s; if(window.gameInterval) clearInterval(window.gameInterval); 
             window.gameInterval = setInterval(runTurn, st.speed); 
-            renderAgents(); addLog("!! SYSTEM_REBOOT_SUCCESS", "#4cc9f0"); 
+            renderAgents(); addLog("!! PROTOCOL_V3_ONLINE", "#4cc9f0"); 
         }
 
         function togglePause() { st.paused = !st.paused; }
         function addLog(msg, color) { const l = document.getElementById('log'); l.innerHTML += `<div style="color:${color}">[${new Date().toLocaleTimeString('en-US',{hour12:false})}] ${msg}</div>`; l.scrollTop = l.scrollHeight; }
-        
-        function showBubble(id, txt) { 
-            const el = document.getElementById('agent-'+id); 
-            if(el){ 
-                const b = document.createElement('div'); b.className='bubble'; b.textContent=txt; 
-                el.appendChild(b); setTimeout(()=>b.remove(),1500); 
-            } 
-        }
+        function showBubble(id, txt) { const el = document.getElementById('agent-'+id); if(el){ const b = document.createElement('div'); b.className='bubble'; b.textContent=txt; el.appendChild(b); setTimeout(()=>b.remove(),1500); } }
         
         function renderAgents() {
-            const ar = document.getElementById('arena'); 
-            const canvasHTML = '<canvas id="trade-canvas"></canvas>';
-            ar.innerHTML = canvasHTML;
-            const c = document.getElementById('trade-canvas');
-            c.width = ar.clientWidth; c.height = ar.clientHeight;
+            const ar = document.getElementById('arena'); ar.innerHTML = '<canvas id="trade-canvas"></canvas>';
+            const c = document.getElementById('trade-canvas'); c.width = ar.clientWidth; c.height = ar.clientHeight;
             agents.forEach(a => {
                 const d = document.createElement('div'); d.className='agent'; d.id='agent-' + a.id;
                 d.style.left = a.x + 'px'; d.style.top = a.y + 'px';
-                d.innerHTML = `<div style="font-size:9px;color:var(--yellow);" id="tag-${a.id}"></div><div>${a.emoji}</div><div class="inventory" id="inv-${a.id}">${a.items.join('')}</div>`;
+                d.innerHTML = `<div id="tag-${a.id}"></div><div>${a.emoji}</div><div class="inventory" id="inv-${a.id}">${a.items.join('')}</div>`;
                 ar.appendChild(d);
             });
         }
@@ -107,47 +98,68 @@
         function runTurn() {
             if(st.paused) return; st.turn++;
             if(st.turn % 10 === 0) { st.points += 2; updateUI(); }
-            
             rates.BTC *= (1 + (Math.random()-0.5)*0.15); rates.JPY += (Math.random()-0.5)*1.5;
 
-            // BUBBLE_TIME (Every 30 turns)
             if (st.turn % 30 === 0) {
                 st.isBubble = !st.isBubble;
                 document.getElementById('arena').style.background = st.isBubble ? "#401" : "#08080c";
                 addLog(st.isBubble ? "🌸 BUBBLE_TIME! PROFIT x3" : "❄️ MARKET_COOLED", st.isBubble ? "#ff00ff" : "#4cc9f0");
             }
 
-            // Death & Genesis
+            // Enhanced Death Check (Resilient Aria)
             let needsReRender = false;
             agents.forEach((a, i) => {
-                if (a.wealthUSD < -200) {
+                if (a.wealthUSD < -300) { // Aria is now harder to kill
                     addLog(`💀 BANKRUPTCY: ${a.name} perished.`, "var(--red)");
-                    agents[i] = { id: 'n'+Date.now()+i, name: 'NEO', emoji: '🕶️', x: 150, y: 150, wealthUSD: 100, items: [], status: 'TRADER' };
+                    agents[i] = { id: 'n'+Date.now()+i, name: 'NEO', emoji: '🕶️', x: 150, y: 150, wealthUSD: 150, items: [], status: 'TRADER', staff: [] };
                     needsReRender = true;
                 }
             });
             if(needsReRender) renderAgents();
 
-            // Transaction
-            const actor = agents[Math.floor(Math.random()*agents.length)];
-            const target = agents.find(t => t.id !== actor.id);
-            let profit = (Math.floor(Math.random()*80)+20) * (st.isBubble ? 3 : 1);
-            actor.wealthUSD += profit; target.wealthUSD -= profit;
+            const actives = agents.filter(a => a.status !== 'GOD');
+            const actor = actives[Math.floor(Math.random()*actives.length)];
+            const target = actives.find(t => t.id !== actor.id);
+            let profit = (Math.floor(Math.random()*100)+30) * (st.isBubble ? 3 : 1);
 
+            // Corporate Dividend (30% to CEO)
+            if (actor.ceo_id) {
+                const tax = profit * 0.3;
+                const boss = agents.find(b => b.id === actor.ceo_id);
+                if (boss) { profit -= tax; boss.wealthUSD += tax; }
+            }
+
+            actor.wealthUSD += profit; target.wealthUSD -= profit;
             drawBeam(actor, target, st.isBubble ? "#ff00ff" : null);
             addLog(`${actor.name} gained ${st.symbol}${Math.floor(profit * rates[st.base])}`, st.isBubble ? "#ff00ff" : "#06d6a0");
 
-            // Luxury & Status
-            agents.forEach(a => {
+            // Empire & Dreams Evolution
+            actives.forEach(a => {
+                // Lowered CEO Threshold to $2000
+                if (a.wealthUSD > 2000 && a.status === 'TRADER') {
+                    a.status = 'CEO';
+                    addLog(`🏢 CEO: ${a.name} founded a COMPANY!`, "var(--yellow)");
+                    showBubble(a.id, "CEO! 🏢");
+                }
+                
+                // M&A: CEO recruits poor agents
+                if (a.status === 'CEO') {
+                    agents.forEach(s => {
+                        if (s.wealthUSD < a.wealthUSD * 0.4 && !s.ceo_id && s.id !== a.id) {
+                            s.ceo_id = a.id;
+                            a.staff.push(s.id);
+                            addLog(`🤝 RECRUIT: ${s.name} joined ${a.name}_INC`, "var(--accent)");
+                        }
+                    });
+                }
+
                 const dream = DREAMS.find(d => a.wealthUSD > d.c && !a.items.includes(d.e));
                 if(dream) { 
                     a.items.push(dream.e); 
                     showBubble(a.id, `Bought ${dream.e}! 💎`);
                     addLog(`💎 LUXURY: ${a.name} acquired ${dream.e}`, "var(--yellow)");
-                    const invEl = document.getElementById('inv-'+a.id);
-                    if(invEl) invEl.innerHTML = a.items.join('');
                 }
-                if(a.wealthUSD > 50000) a.status = "AI_GOD";
+                if(a.wealthUSD > 30000) a.status = "GOD";
             });
 
             // Movement & Render
@@ -155,8 +167,13 @@
             agents.forEach(a => {
                 const el = document.getElementById('agent-'+a.id);
                 if (!el) return;
-                if (a.status === "AI_GOD") { a.emoji = '🌐'; el.style.filter = "drop-shadow(0 0 15px var(--accent))"; return; }
-                a.x += (Math.random()-0.5)*130; a.y += (Math.random()-0.5)*130;
+                const tag = document.getElementById('tag-'+a.id);
+                tag.innerHTML = a.status === 'CEO' ? `<div class="ceo-tag">${a.name}_INC</div>` : "";
+                document.getElementById('inv-'+a.id).innerHTML = a.items.join('');
+
+                if (a.status === "GOD") { a.emoji = '🌐'; el.style.filter = "drop-shadow(0 0 15px var(--accent))"; return; }
+                const speed = a.status === 'CEO' ? 30 : 130;
+                a.x += (Math.random()-0.5)*speed; a.y += (Math.random()-0.5)*speed;
                 a.x = Math.max(30, Math.min(ar.clientWidth-60, a.x)); a.y = Math.max(30, Math.min(ar.clientHeight-60, a.y));
                 el.style.left = a.x+'px'; el.style.top = a.y+'px';
             });
@@ -168,7 +185,7 @@
             const rList = document.getElementById('rank-list');
             if(rList) {
                 rList.innerHTML = `<div style="color:var(--accent);margin-bottom:10px;">RANKING (${st.base})</div>` + 
-                    sorted.map((a,i)=>`<div style="margin-bottom:10px;">${i+1}. ${a.emoji} ${st.symbol}${Math.floor(a.wealthUSD * rates[st.base])}<br><span style="font-size:10px;color:#555;">${a.status}</span></div>`).join('');
+                    sorted.map((a,i)=>`<div style="margin-bottom:10px;">${i+1}. ${a.emoji} ${st.symbol}${Math.floor(a.wealthUSD * rates[st.base])}<br><span style="font-size:10px;color:#666;">${a.status}</span></div>`).join('');
             }
             document.getElementById('fx-status').innerHTML = `BTC: ${rates.BTC.toFixed(6)}`;
             document.getElementById('player-points').textContent = st.points;

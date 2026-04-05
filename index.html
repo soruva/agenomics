@@ -38,13 +38,29 @@
 
         // --- 2. ここに「あなたの runTurn 関数」をそのまま貼る ---
         function runTurn() {
-            if(st.paused)return;
-  st.turn++;
-  glitchState.agents=agents;
-  agents.forEach(a=>a.prevW=a.wealthUSD);
-  Object.keys(cardCooldowns).forEach(k=>{if(cardCooldowns[k]>0)cardCooldowns[k]--;
-            console.log("Turn: " + st.turn); // 動作確認用
-        }
+    if (st.paused) return;
+    st.turn++;
+    
+    // エージェントの状態を更新
+    glitchState.agents = agents;
+    agents.forEach(a => a.prevW = a.wealthUSD);
+
+    // カードのクールダウンを減らす（ループを正しく閉じました）
+    Object.keys(cardCooldowns).forEach(k => {
+        if (cardCooldowns[k] > 0) cardCooldowns[k]--;
+    });
+
+    // --- ここに本来の取引ロジックが入ります ---
+    // 一旦、動作確認用にログを出します
+    console.log("Turn processed: " + st.turn);
+    addLog(`Turn ${st.turn}: 経済が動いています...`, "#aaa");
+
+    // 画面更新関数の呼び出し
+    if (typeof moveAgents === 'function') moveAgents();
+    if (typeof updateLB === 'function') updateLB();
+    if (typeof updateMetrics === 'function') updateMetrics();
+    if (typeof updateChart === 'function') updateChart();
+}
 
         // --- 3. 足りない関数を埋める ---
         function startMode(mode) {

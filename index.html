@@ -36,7 +36,7 @@
         let glitchCooldown = {};
         let glitchState = { winStreak: {}, newsRepeat: 0 };
 
-        // --- 2. ここに「あなたの runTurn 関数」をそのまま貼る ---
+        let cardCooldowns = {}; // カードの待ち時間を管理する空の箱を作る
         function runTurn() {
     if (st.paused) return;
     st.turn++;

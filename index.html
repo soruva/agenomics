@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Agenomics — AI Economy Game</title>
+<meta name="description" content="A fully closed virtual economy game where AI agents autonomously trade, invest, and compete. 100% safe sandbox — no real money, no real data."/>
+<meta property="og:title" content="Agenomics — AI Economy Game"/>
+<meta property="og:description" content="Pick an AI agent, use event cards to manipulate the market, earn dividends. Fully closed virtual sandbox."/>
+<meta property="og:type" content="website"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f9f9f7;color:#1a1a18;min-height:100vh;}
+.container{max-width:680px;margin:0 auto;padding:1rem 1rem 3rem;}
+.app{padding:.5rem 0;}
+.screen{display:none;}.screen.active{display:block;}
+.sec{font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.btn-primary{width:100%;padding:12px;font-size:14px;font-weight:600;background:#1D9E75;color:#fff;border:none;border-radius:12px;cursor:pointer;transition:opacity .15s;}
+.btn-primary:hover{opacity:.9;}
+.btn-primary:disabled{opacity:.4;cursor:default;}
+.btn-sec{padding:10px 16px;font-size:13px;background:transparent;border:1px solid #ddd;border-radius:10px;cursor:pointer;color:#555;transition:background .15s;}
+.btn-sec:hover{background:#f0f0ee;}
+/* HOME */
+.home-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
+.home-title{font-size:24px;font-weight:700;color:#1a1a18;letter-spacing:-.5px;}
+.home-sub{font-size:12px;color:#888;margin-top:2px;}
+.streak-badge{background:#FFF3E0;border:1px solid #FFB74D;border-radius:20px;padding:5px 12px;font-size:12px;color:#E65100;font-weight:600;}
+.home-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem;}
+.home-card{background:#fff;border:1px solid #e8e8e6;border-radius:14px;padding:1rem;cursor:pointer;transition:border-color .15s,box-shadow .15s;}
+.home-card:hover{border-color:#bbb;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.home-card.daily{border:2px solid #1D9E75;}
+.hc-icon{font-size:24px;margin-bottom:6px;}
+.hc-title{font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:2px;}
+.hc-sub{font-size:11px;color:#888;}
+.hc-badge{display:inline-block;background:#E8F5E9;color:#2E7D32;font-size:10px;padding:2px 8px;border-radius:20px;margin-top:4px;font-weight:600;}
+.safe-note{background:#E8F5E9;border:1px solid #A5D6A7;border-radius:10px;padding:8px 12px;font-size:11px;color:#2E7D32;margin-bottom:1rem;display:flex;align-items:center;gap:6px;}
+/* WEEKLY LB */
+.weekly-lb{background:#fff;border:1px solid #e8e8e6;border-radius:14px;padding:.875rem;margin-bottom:1rem;}
+.wlb-title{font-size:12px;font-weight:600;color:#555;margin-bottom:8px;display:flex;justify-content:space-between;}
+.wlb-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f0f0ee;}
+.wlb-row:last-child{border-bottom:none;}
+.wlb-rk{font-size:12px;width:18px;font-weight:600;color:#aaa;}
+.wlb-nm{font-size:12px;color:#1a1a18;flex:1;}
+.wlb-pts{font-size:12px;font-weight:600;color:#1D9E75;}
+/* BADGES */
+.badge-grid{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem;}
+.badge-item{display:flex;flex-direction:column;align-items:center;gap:3px;width:54px;}
+.badge-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid #e8e8e6;}
+.badge-icon.earned{background:#E8F5E9;border-color:#1D9E75;}
+.badge-icon.locked{background:#f5f5f3;opacity:.4;}
+.badge-name{font-size:9px;color:#888;text-align:center;line-height:1.3;}
+.freeze-btn{width:100%;padding:8px;font-size:12px;background:transparent;border:1px solid #ddd;border-radius:10px;cursor:pointer;color:#555;margin-bottom:1rem;}
+/* SETUP */
+.s-title{font-size:20px;font-weight:700;color:#1a1a18;margin-bottom:3px;}
+.s-sub{font-size:12px;color:#888;margin-bottom:1.25rem;line-height:1.6;}
+.agent-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:1.25rem;}
+.acard{background:#fff;border:1px solid #e8e8e6;border-radius:12px;padding:.7rem .4rem;text-align:center;cursor:pointer;transition:border-color .15s;}
+.acard:hover{border-color:#bbb;}
+.acard.sel{border:2px solid #1D9E75;background:#F1FAF6;}
+.acard-em{font-size:22px;margin-bottom:4px;}
+.acard-nm{font-size:11px;font-weight:600;color:#1a1a18;margin-bottom:1px;}
+.acard-tr{font-size:9px;color:#888;}
+.acard-lv{font-size:9px;color:#1D9E75;font-weight:600;margin-top:1px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem;}
+.brow{display:flex;align-items:center;gap:10px;}
+.brow input[type=range]{flex:1;accent-color:#1D9E75;}
+.bval{font-size:14px;font-weight:600;min-width:52px;color:#1a1a18;}
+.cur-row{display:flex;gap:5px;flex-wrap:wrap;}
+.cbtn{padding:4px 10px;font-size:11px;border-radius:20px;border:1px solid #ddd;background:transparent;color:#888;cursor:pointer;transition:all .15s;}
+.cbtn.act{background:#1D9E75;color:#fff;border-color:#1D9E75;font-weight:600;}
+.daily-hint{background:#FFF3E0;border:1px solid #FFB74D;border-radius:10px;padding:8px 12px;font-size:12px;color:#E65100;margin-bottom:1rem;}
+/* GAME */
+.gh{display:flex;align-items:center;gap:6px;margin-bottom:.75rem;flex-wrap:wrap;}
+.mbadge{background:#E8F5E9;border-radius:20px;padding:4px 10px;font-size:11px;color:#2E7D32;font-weight:600;}
+.pval{font-size:13px;font-weight:600;color:#1a1a18;}
+.pts-badge{background:#EDE7F6;border-radius:20px;padding:4px 9px;font-size:11px;color:#512DA8;font-weight:600;}
+.streak-sm{background:#FFF3E0;border-radius:20px;padding:3px 9px;font-size:11px;color:#E65100;font-weight:600;}
+.rnd{font-size:11px;color:#aaa;margin-left:auto;}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:.75rem;}
+.met{background:#fff;border:1px solid #e8e8e6;border-radius:10px;padding:.55rem .7rem;}
+.ml{font-size:9px;color:#aaa;margin-bottom:2px;font-weight:500;text-transform:uppercase;}
+.mv{font-size:13px;font-weight:600;color:#1a1a18;}
+.news-bar{background:#FFF9C4;border:1px solid #F9A825;border-radius:10px;padding:6px 12px;font-size:11px;color:#F57F17;margin-bottom:.75rem;display:flex;align-items:center;gap:6px;}
+.arena-wrap{display:grid;grid-template-columns:3fr 2fr;gap:8px;margin-bottom:.75rem;}
+.arena{background:#f5f5f3;border:1px solid #e8e8e6;border-radius:12px;position:relative;height:200px;overflow:hidden;}
+.agent-el{position:absolute;text-align:center;width:52px;transition:left .9s ease,top .9s ease;}
+.acirc{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;margin:0 auto 2px;position:relative;}
+.my-ring{position:absolute;inset:-3px;border-radius:50%;border:2.5px solid #1D9E75;}
+.tf{position:absolute;font-size:10px;font-weight:600;pointer-events:none;animation:fu 2s ease forwards;white-space:nowrap;}
+@keyframes fu{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-28px)}}
+.bubble{position:absolute;background:#fff;border:1.5px solid #e0e0de;border-radius:10px;padding:4px 8px;font-size:10px;color:#333;white-space:nowrap;pointer-events:none;animation:bubblePop 3s ease forwards;z-index:10;max-width:130px;white-space:normal;line-height:1.4;box-shadow:0 2px 6px rgba(0,0,0,.08);}
+.bubble::after{content:'';position:absolute;bottom:-7px;left:12px;border:4px solid transparent;border-top-color:#e0e0de;}
+.bubble.glitch{border-color:#F59E0B;background:#FFFBEB;}
+.bubble.glitch::after{border-top-color:#F59E0B;}
+@keyframes bubblePop{0%{opacity:0;transform:scale(.8) translateY(4px)}10%{opacity:1;transform:scale(1) translateY(0)}80%{opacity:1}100%{opacity:0;transform:translateY(-6px)}}
+.side-panel{display:flex;flex-direction:column;gap:6px;}
+.lb{background:#fff;border:1px solid #e8e8e6;border-radius:12px;padding:.7rem;flex:1;overflow-y:auto;max-height:120px;}
+.lb-t{font-size:10px;font-weight:600;color:#aaa;margin-bottom:5px;text-transform:uppercase;}
+.lb-row{display:flex;align-items:center;gap:5px;padding:3px 0;border-bottom:1px solid #f5f5f3;}
+.lb-row:last-child{border-bottom:none;}
+.lb-rk{font-size:10px;width:14px;color:#aaa;font-weight:600;}
+.lb-nm{font-size:10px;color:#1a1a18;flex:1;}
+.lb-wl{font-size:9px;font-weight:600;}
+.lb-ch{font-size:9px;min-width:32px;text-align:right;}
+.chart-box{background:#fff;border:1px solid #e8e8e6;border-radius:12px;padding:.7rem;}
+.chart-t{font-size:10px;font-weight:600;color:#aaa;margin-bottom:4px;text-transform:uppercase;}
+.tabs{display:flex;gap:4px;margin-bottom:.6rem;}
+.tab{padding:5px 12px;font-size:11px;border-radius:20px;border:1px solid #e0e0de;background:transparent;color:#888;cursor:pointer;font-weight:500;transition:all .15s;}
+.tab.act{background:#1a1a18;color:#fff;border-color:#1a1a18;}
+.tab-content{display:none;}.tab-content.act{display:block;}
+.card-chips{display:flex;gap:5px;flex-wrap:wrap;}
+.ecard{padding:5px 10px;font-size:11px;border-radius:8px;border:1px solid #e0e0de;background:#fff;cursor:pointer;font-weight:500;transition:all .15s;display:flex;align-items:center;gap:4px;}
+.ecard:hover:not(:disabled){background:#f5f5f3;border-color:#bbb;}
+.ecard:disabled{opacity:.35;cursor:default;}
+.ecard-cd{font-size:9px;color:#aaa;}
+.skill-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.skill-card{background:#fff;border:1px solid #e8e8e6;border-radius:10px;padding:.6rem;cursor:pointer;transition:all .15s;}
+.skill-card:hover:not(.owned){border-color:#bbb;background:#f9f9f7;}
+.skill-card.owned{border-color:#1D9E75;background:#E8F5E9;}
+.sk-em{font-size:16px;margin-bottom:3px;}
+.sk-nm{font-size:10px;font-weight:600;color:#1a1a18;margin-bottom:1px;}
+.sk-desc{font-size:9px;color:#888;line-height:1.4;margin-bottom:3px;}
+.sk-cost{font-size:9px;color:#512DA8;font-weight:600;}
+.skill-card.owned .sk-nm,.skill-card.owned .sk-desc,.skill-card.owned .sk-cost{color:#2E7D32;}
+.eflash{border-radius:10px;padding:7px 12px;font-size:12px;margin-bottom:.6rem;display:none;font-weight:500;}
+.log{background:#fff;border:1px solid #e8e8e6;border-radius:12px;padding:.6rem 1rem;height:72px;overflow-y:auto;margin-bottom:.75rem;}
+.le{font-size:10px;padding:2px 0;border-bottom:1px solid #f5f5f3;line-height:1.5;}
+.le:last-child{border-bottom:none;}
+.ctrl{display:flex;gap:6px;}
+.ctrl button{flex:1;font-size:12px;font-weight:500;}
+/* RESULT */
+.rw{text-align:center;padding:1.5rem .5rem 2rem;}
+.re{font-size:52px;margin-bottom:.75rem;}
+.rt{font-size:22px;font-weight:700;margin-bottom:6px;color:#1a1a18;}
+.rs2{font-size:13px;color:#888;margin-bottom:1.25rem;line-height:1.6;}
+.rstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem;}
+.rsbox{background:#f5f5f3;border-radius:10px;padding:.875rem;}
+.rsl{font-size:10px;color:#aaa;margin-bottom:3px;text-transform:uppercase;font-weight:600;}
+.rsv{font-size:17px;font-weight:700;color:#1a1a18;}
+.new-badges{background:#E8F5E9;border:1px solid #A5D6A7;border-radius:10px;padding:.875rem;margin-bottom:1rem;text-align:left;}
+.nb-title{font-size:12px;font-weight:600;color:#2E7D32;margin-bottom:6px;}
+.nb-list{display:flex;gap:8px;flex-wrap:wrap;}
+.share-box{background:#f5f5f3;border-radius:10px;padding:.875rem;margin-bottom:1.25rem;font-size:12px;color:#555;line-height:1.7;font-family:monospace;text-align:left;}
+.share-title{font-size:11px;font-weight:600;color:#1a1a18;margin-bottom:5px;}
+footer{text-align:center;font-size:11px;color:#bbb;padding:1rem 0;border-top:1px solid #e8e8e6;margin-top:2rem;}
+footer a{color:#1D9E75;text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="app">
+
+<!-- HOME -->
+<div class="screen active" id="s-home">
+  <div class="home-header">
+    <div>
+      <div class="home-title">Agenomics</div>
+      <div class="home-sub">AI Economy Game</div>
+    </div>
+    <div class="streak-badge" id="streak-display">🔥 0 days</div>
+  </div>
+  <div class="safe-note">🔒 Fully closed virtual sandbox — no real money, no real data, ever.</div>
+  <div id="freeze-area"></div>
+  <div class="home-cards">
+    <div class="home-card daily" onclick="startMode('daily')">
+      <div class="hc-icon">⚡</div>
+      <div class="hc-title">Daily Challenge</div>
+      <div class="hc-sub">Today's special scenario</div>
+      <div class="hc-badge" id="daily-badge">Not played</div>
+    </div>
+    <div class="home-card" onclick="startMode('normal')">
+      <div class="hc-icon">🎮</div>
+      <div class="hc-title">Free Play</div>
+      <div class="hc-sub">Choose any agent freely</div>
+    </div>
+    <div class="home-card" onclick="showTab('weekly')">
+      <div class="hc-icon">🏆</div>
+      <div class="hc-title">Weekly Ranking</div>
+      <div class="hc-sub">Your global rank this week</div>
+    </div>
+    <div class="home-card" onclick="showTab('badges')">
+      <div class="hc-icon">🎖️</div>
+      <div class="hc-title">Badge Collection</div>
+      <div class="hc-sub" id="badge-count-sub">0 / 12 earned</div>
+    </div>
+  </div>
+  <div id="home-tab-weekly" style="display:none;">
+    <div class="weekly-lb">
+      <div class="wlb-title"><span>🏆 Weekly Leaderboard</span><span style="font-size:10px;color:#aaa;" id="wlb-reset"></span></div>
+      <div id="wlb-rows"></div>
+    </div>
+  </div>
+  <div id="home-tab-badges" style="display:none;">
+    <div class="sec" style="margin-top:.5rem;">Badge Collection</div>
+    <div class="badge-grid" id="badge-grid"></div>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div class="screen" id="s-setup">
+  <div class="s-title" id="setup-title">Free Play</div>
+  <div class="s-sub" id="setup-sub">Pick an agent and dominate the market.</div>
+  <div id="daily-hint-box"></div>
+  <div class="sec">Choose your agent</div>
+  <div class="agent-grid" id="agent-grid"></div>
+  <div class="row2">
+    <div><div class="sec">Initial investment</div><div class="brow"><input type="range" id="bslider" min="1" max="10" value="5" step="1" oninput="updB(this.value)"/><span class="bval" id="bval">$500</span></div></div>
+    <div><div class="sec">Display currency</div><div class="cur-row" id="cur-setup"></div></div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn-primary" id="gobtn" onclick="startGame()" disabled style="flex:2;">Start</button>
+    <button class="btn-sec" onclick="showHome()" style="flex:1;">Back</button>
+  </div>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="s-game">
+  <div class="gh">
+    <div class="mbadge" id="mbadge">Investing</div>
+    <div class="pval" id="pval">$500</div>
+    <div class="pts-badge" id="pts-badge">⭐ 0 pts</div>
+    <div class="streak-sm" id="game-streak">🔥 0 days</div>
+    <div class="rnd" id="rnd">R0/20</div>
+  </div>
+  <div class="news-bar">📰 <span id="news-text">Market is stable...</span><span style="font-size:9px;margin-left:4px;" id="news-eff"></span></div>
+  <div class="eflash" id="eflash"></div>
+  <div class="metrics">
+    <div class="met"><div class="ml">Turn</div><div class="mv" id="mt">0</div></div>
+    <div class="met"><div class="ml">Trades</div><div class="mv" id="mtr">0</div></div>
+    <div class="met"><div class="ml">Leader</div><div class="mv" id="ml2">—</div></div>
+    <div class="met"><div class="ml">Market cap</div><div class="mv" id="mtot">—</div></div>
+  </div>
+  <div class="arena-wrap">
+    <div class="arena" id="arena"><svg id="lines" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></svg></div>
+    <div class="side-panel">
+      <div class="lb"><div class="lb-t">Leaderboard</div><div id="lboard"></div></div>
+      <div class="chart-box"><div class="chart-t">Portfolio</div><canvas id="chart" height="58"></canvas></div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab act" onclick="switchTab('cards')">🃏 Event cards</button>
+    <button class="tab" onclick="switchTab('skills')">⚡ Skills</button>
+  </div>
+  <div class="tab-content act" id="tab-cards"><div class="card-chips" id="card-chips"></div></div>
+  <div class="tab-content" id="tab-skills"><div class="skill-grid" id="skill-grid"></div></div>
+  <div class="log" id="log"></div>
+  <div class="ctrl">
+    <button class="btn-sec" id="btnp" onclick="togglePause()">⏸ Pause</button>
+    <button class="btn-sec" onclick="addInvest()">💰 Add funds</button>
+    <button class="btn-sec" onclick="showHome()">↺ Home</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="s-result">
+  <div class="rw">
+    <div class="re" id="re">🏆</div>
+    <div class="rt" id="rt">Victory!</div>
+    <div class="rs2" id="rs2"></div>
+    <div class="rstats">
+      <div class="rsbox"><div class="rsl">Final portfolio</div><div class="rsv" id="rfin">—</div></div>
+      <div class="rsbox"><div class="rsl">P&amp;L</div><div class="rsv" id="rpnl">—</div></div>
+      <div class="rsbox"><div class="rsl">Rank</div><div class="rsv" id="rrk">—</div></div>
+    </div>
+    <div class="new-badges" id="new-badges" style="display:none;">
+      <div class="nb-title">🎖️ New badges earned!</div>
+      <div class="nb-list" id="nb-list"></div>
+    </div>
+    <div class="share-box"><div class="share-title">📤 Share your result</div><div id="share-text"></div></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-primary" onclick="showHome()" style="flex:1;">Home</button>
+      <button class="btn-sec" onclick="startMode(currentMode)" style="flex:1;">Play again</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+<footer>
+  <strong>Agenomics</strong> — Fully closed virtual economy. No real money. No real data. Ever.<br/>
+  Built with <a href="https://anthropic.com">Claude</a> · <a href="/cdn-cgi/l/email-protection#157d7079797a557472707b7a787c76663b7c7a"><span class="__cf_email__" data-cfemail="49212c25252609282e2c272624202a3a672026">[email&#160;protected]</span></a>
+</footer>
+</div><!-- /container -->
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+const CURR=[{code:'USD',sym:'$',rate:1,flag:'🇺🇸'},{code:'EUR',sym:'€',rate:.92,flag:'🇪🇺'},{code:'JPY',sym:'¥',rate:150,flag:'🇯🇵'},{code:'GBP',sym:'£',rate:.79,flag:'🇬🇧'},{code:'CHF',sym:'Fr',rate:.90,flag:'🇨🇭'}];
+let cur=CURR[0];
+function fmt(u){const v=u*cur.rate;if(cur.code==='JPY')return cur.sym+Math.round(v).toLocaleString();if(cur.code==='CHF')return'Fr '+v.toFixed(2);return cur.sym+v.toFixed(2);}
+
+const ADEFS=[
+  {id:0,name:'Aria', emoji:'🤖',bg:'#DBEAFE',tc:'#1D4ED8',trait:'Aggressive', style:'aggressive',  phaseBoost:{early:1.4,late:.8}},
+  {id:1,name:'Bolt', emoji:'⚡',bg:'#D1FAE5',tc:'#065F46',trait:'Steady',     style:'conservative', crashResist:.6},
+  {id:2,name:'Coda', emoji:'🧠',bg:'#EDE9FE',tc:'#5B21B6',trait:'Analyst',    style:'analytical',   newsBonus:1.8},
+  {id:3,name:'Dex',  emoji:'🔮',bg:'#FEF3C7',tc:'#92400E',trait:'Speculator', style:'opportunistic',predatorBonus:1.5},
+  {id:4,name:'Echo', emoji:'🌀',bg:'#FFE4E6',tc:'#9F1239',trait:'Chaos',      style:'random',        volatility:2.2},
+];
+
+const NEWS_POOL=[
+  {id:'tech',    text:'Tech stocks surging',            eff:'Data +30%',       mult:1.3,affects:'all'},
+  {id:'energy',  text:'Energy prices spiking',          eff:'Energy ×1.5',     mult:1.5,affects:'all'},
+  {id:'boom',    text:'Bull market — euphoria rising',  eff:'All agents +20%', mult:1.2,affects:'global'},
+  {id:'crash',   text:'Hedge fund liquidating fast',    eff:'Risk assets fall', mult:.75,affects:'global'},
+  {id:'stable',  text:'Central bank stabilizes market', eff:'Bolt advantage',  mult:1.0,affects:'conservative'},
+  {id:'chaos',   text:'Unpredictable volatility spike', eff:'Echo goes wild',  mult:1.0,affects:'random'},
+  {id:'protocol',text:'New protocol gaining traction',  eff:'Protocol ×3',     mult:3.0,affects:'all'},
+];
+
+const EVENTS=[
+  {id:'boom',  label:'🚀 Bubble',   desc:'All +20%',       cd:3,color:'#15803D'},
+  {id:'crash', label:'💥 Crash',    desc:'Rivals −25%',    cd:4,color:'#DC2626'},
+  {id:'tax',   label:'📜 Tax',      desc:'Tax the leader', cd:3,color:'#B45309'},
+  {id:'intel', label:'🔍 Intel',    desc:'Self +15%',      cd:2,color:'#6D28D9'},
+  {id:'chaos', label:'🌪️ Chaos',   desc:'Shuffle wealth', cd:5,color:'#9F1239'},
+  {id:'ally',  label:'🤝 Alliance', desc:'2nd place +10%', cd:3,color:'#1D4ED8'},
+];
+
+const SKILLS=[
+  {id:'speed',     em:'⚡',name:'Speed trading',  desc:'Profit +20% per turn',     cost:3},
+  {id:'defense',   em:'🛡️',name:'Risk mgmt',     desc:'Cut losses by 30%',        cost:3},
+  {id:'intel',     em:'🔍',name:'Intel',          desc:'News effect ×2',           cost:4},
+  {id:'predator',  em:'🦅',name:'Predator',       desc:'+15% from weak agents',    cost:4},
+  {id:'resilience',em:'💪',name:'Resilience',     desc:'Auto-recover after crash', cost:3},
+  {id:'alliance',  em:'🤝',name:'Diplomacy',      desc:'Alliance cards ×1.5',      cost:2},
+];
+
+const BADGE_DEFS=[
+  {id:'first_win',    em:'🏆',name:'First win',    cond:'Finish 1st place'},
+  {id:'comeback',     em:'🔥',name:'Comeback',     cond:'Last to 1st place'},
+  {id:'streak3',      em:'📅',name:'3-day streak', cond:'Play 3 days in a row'},
+  {id:'streak7',      em:'🗓️',name:'7-day streak',cond:'Play 7 days in a row'},
+  {id:'crash_master', em:'💥',name:'Crash king',   cond:'Win after using Crash card'},
+  {id:'rich',         em:'💰',name:'Millionaire',  cond:'Final portfolio over $2000'},
+  {id:'daily10',      em:'⚡',name:'Daily ×10',    cond:'Complete 10 daily challenges'},
+  {id:'no_cards',     em:'🎯',name:'Purist',       cond:'Win without using any cards'},
+  {id:'all_skills',   em:'🎓',name:'Skill master', cond:'Unlock all 6 skills'},
+  {id:'top3_weekly',  em:'🥉',name:'Weekly top 3', cond:'Finish top 3 in weekly ranking'},
+  {id:'chaos_win',    em:'🌪️',name:'Chaos lord',  cond:'Win after using Chaos card'},
+  {id:'ally_win',     em:'🤝',name:'Diplomat',     cond:'Win after using Alliance card'},
+];
+
+const DAILY_SCENARIOS=[
+  {title:'Bubble Economy',     sub:'Extreme euphoria across the market. Everyone is bullish.',  newsOverride:'boom',    bonusMult:1.3},
+  {title:'Black Monday',       sub:'Sell-off from the open. Defense is everything.',            newsOverride:'crash',   bonusMult:1.0},
+  {title:'Protocol Revolution',sub:'New tech sweeps the market. Analysts have the edge.',      newsOverride:'protocol',bonusMult:1.2},
+  {title:'Chaos Market',       sub:"Nobody knows what's next. Time for Echo to shine.",        newsOverride:'chaos',   bonusMult:1.1},
+  {title:'Calm Day',           sub:'Central bank intervenes. Bolt proves its worth.',           newsOverride:'stable',  bonusMult:1.0},
+  {title:'Tech Frenzy',        sub:'Tech stocks on fire. Data assets in the spotlight.',       newsOverride:'tech',    bonusMult:1.2},
+];
+
+const GOODS=['Data','Energy','Algorithm','Token','Knowledge','Protocol'];
+
+const GLITCHES={
+  0:{check:(a,gs)=>a.wealthUSD>=(gs.initialWealth[a.id]||1000)*2,msgs:["Going out to celebrate... back in a sec!","This calls for champagne. Skipping this trade. 🥂","I'm too rich to work right now.","Victory lap. Don't wait up."],color:'#F59E0B',skipTurn:true},
+  1:{check:(a,gs)=>gs.lastCard==='chaos',msgs:["TOO CHAOTIC. Selling everything. 😱","I can't handle this. Full liquidation!","Abort abort abort!","Data says: RUN."],color:'#DC2626',skipTurn:true,onTrigger:(a)=>{a.wealthUSD*=0.75;}},
+  2:{check:(a,gs)=>gs.newsRepeat>=2,msgs:["Same data twice? Something's wrong...","My models need recalibrating. Pausing.","Statistical anomaly detected. Stand by.","This doesn't compute. Sitting out."],color:'#6D28D9',skipTurn:true},
+  3:{check:(a,gs)=>{const s=[...gs.agents].sort((x,y)=>y.wealthUSD-x.wealthUSD);return s.findIndex(x=>x.id===a.id)===4;},msgs:["Last place? TIME TO GAMBLE EVERYTHING.","Nothing to lose. Full leverage. 🎰","Rock bottom is just a launchpad.","YOLO mode activated."],color:'#9F1239',skipTurn:false,onTrigger:(a,gs)=>{const top=gs.agents.reduce((x,y)=>y.wealthUSD>x.wealthUSD?y:x);const steal=top.wealthUSD*.3*(Math.random()>.5?1:-1);a.wealthUSD+=steal;top.wealthUSD-=steal*.5;}},
+  4:{check:(a,gs)=>(gs.winStreak[a.id]||0)>=3,msgs:["Won 3 times in a row? Too suspicious.","Something's wrong. The universe is too kind.","Statistically, a loss is overdue...","Taking a break. This feels rigged."],color:'#1D4ED8',skipTurn:true}
+};
+let glitchState={initialWealth:{},lastCard:null,newsRepeat:0,prevNewsId:null,winStreak:{},agents:[]};
+let glitchCooldown={};
+const TODAY=new Date().toDateString();
+const DAILY_SCENARIO=DAILY_SCENARIOS[new Date().getDay()%DAILY_SCENARIOS.length];
+
+let selAgent=null,budgetUSD=500,currentMode='normal';
+let agents=[],myPort=500,myPoints=0;
+let st={turn:0,trades:0,round:0,running:false,paused:false,interval:null};
+let logs=[],chartInst=null,chartData=[];
+let cardCooldowns={},ownedSkills=new Set();
+let agentLevels={},agentSkillsPersist={};
+let currentNews=NEWS_POOL[0],activeTab='cards';
+let lowestRank=1,cardsUsedGame=0;
+
+// Persistence via localStorage
+function loadPersistence(){
+  try{
+    const raw=localStorage.getItem('agenomics_v1');
+    if(raw)return JSON.parse(raw,function(k,v){if(k==='earnedBadges')return new Set(v);return v;});
+  }catch(e){}
+  return{streak:0,lastPlayDate:null,freezeTickets:1,weeklyPts:{},earnedBadges:new Set(),dailyPlayed:false,dailyPlayCount:0,totalGames:0};
+}
+function savePersistence(){
+  try{
+    const copy={...persistence,earnedBadges:[...persistence.earnedBadges]};
+    localStorage.setItem('agenomics_v1',JSON.stringify(copy));
+  }catch(e){}
+}
+let persistence=loadPersistence();
+
+function checkStreak(){
+  const last=persistence.lastPlayDate;
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  if(last===TODAY)return;
+  persistence.streak=last===yesterday.toDateString()?persistence.streak+1:1;
+  persistence.lastPlayDate=TODAY;
+  savePersistence();
+  updateStreakDisplay();
+}
+
+function updateStreakDisplay(){
+  const s=persistence.streak;
+  const txt=`🔥 ${s} day${s!==1?'s':''} streak`;
+  ['streak-display','game-streak'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=txt;});
+  const fa=document.getElementById('freeze-area');
+  if(fa&&persistence.freezeTickets>0&&s>0)fa.innerHTML=`<button class="freeze-btn" onclick="useFreeze()">🧊 Streak freeze available (${persistence.freezeTickets} left) — skip 1 day safely</button>`;
+  else if(fa)fa.innerHTML='';
+}
+
+function useFreeze(){persistence.freezeTickets=Math.max(0,persistence.freezeTickets-1);savePersistence();updateStreakDisplay();}
+
+function renderWeeklyLB(){
+  const fakes=[['Trader_Alpha',Math.floor(Math.random()*800+400)],['Market_Pro',Math.floor(Math.random()*600+300)],['EchoFan99',Math.floor(Math.random()*500+200)],['BoltKing',Math.floor(Math.random()*400+100)]];
+  const all=[...fakes,['You',persistence.weeklyPts['me']||0]].sort((a,b)=>b[1]-a[1]);
+  const reset=new Date(Date.now()+7*24*60*60*1000);
+  document.getElementById('wlb-reset').textContent=`Resets ${reset.getMonth()+1}/${reset.getDate()}`;
+  document.getElementById('wlb-rows').innerHTML=all.slice(0,5).map((r,i)=>{
+    const isMe=r[0]==='You';
+    return`<div class="wlb-row" style="${isMe?'background:#F1FAF6;border-radius:6px;padding:3px 8px;':''}"><div class="wlb-rk">${i+1}</div><div class="wlb-nm">${r[0]}${isMe?' ←':''}</div><div class="wlb-pts">${r[1]} pts</div></div>`;
+  }).join('');
+}
+
+function renderBadges(){
+  const g=document.getElementById('badge-grid');if(!g)return;
+  g.innerHTML=BADGE_DEFS.map(b=>{
+    const earned=persistence.earnedBadges.has(b.id);
+    return`<div class="badge-item"><div class="badge-icon ${earned?'earned':'locked'}" title="${b.cond}">${b.em}</div><div class="badge-name">${b.name}</div></div>`;
+  }).join('');
+  const sub=document.getElementById('badge-count-sub');
+  if(sub)sub.textContent=`${persistence.earnedBadges.size} / ${BADGE_DEFS.length} earned`;
+}
+
+function checkBadges(rank,finalPort,cardsUsed,lowestRk){
+  const earned=[];
+  function tryEarn(id){if(!persistence.earnedBadges.has(id)){persistence.earnedBadges.add(id);earned.push(BADGE_DEFS.find(b=>b.id===id));}}
+  if(rank===1)tryEarn('first_win');
+  if(rank===1&&lowestRk>=4)tryEarn('comeback');
+  if(persistence.streak>=3)tryEarn('streak3');
+  if(persistence.streak>=7)tryEarn('streak7');
+  if(finalPort*cur.rate>=2000)tryEarn('rich');
+  if(persistence.dailyPlayCount>=10)tryEarn('daily10');
+  if(rank===1&&cardsUsed===0)tryEarn('no_cards');
+  if(ownedSkills.size>=SKILLS.length)tryEarn('all_skills');
+  return earned;
+}
+
+function showHome(){
+  clearInterval(st.interval);st.running=false;
+  updateStreakDisplay();renderWeeklyLB();renderBadges();
+  const db=document.getElementById('daily-badge');
+  if(db)db.textContent=persistence.dailyPlayed?'✓ Done':'Not played';
+  document.getElementById('home-tab-weekly').style.display='none';
+  document.getElementById('home-tab-badges').style.display='none';
+  showS('s-home');
+}
+
+function showTab(t){
+  document.getElementById('home-tab-weekly').style.display=t==='weekly'?'block':'none';
+  document.getElementById('home-tab-badges').style.display=t==='badges'?'block':'none';
+  if(t==='badges')renderBadges();
+}
+
+function startMode(mode){
+  currentMode=mode;selAgent=null;
+  document.getElementById('setup-title').textContent=mode==='daily'?'⚡ Daily Challenge':'🎮 Free Play';
+  document.getElementById('setup-sub').textContent=mode==='daily'?DAILY_SCENARIO.sub:'Pick an agent and dominate the market.';
+  const hint=document.getElementById('daily-hint-box');
+  if(mode==='daily'&&hint)hint.innerHTML=`<div class="daily-hint">📅 Today: <strong>${DAILY_SCENARIO.title}</strong> — same conditions for everyone worldwide!</div>`;
+  else if(hint)hint.innerHTML='';
+  buildSetup();
+  document.getElementById('gobtn').disabled=true;
+  document.getElementById('gobtn').textContent='Choose an agent to start';
+  showS('s-setup');
+}
+
+function buildSetup(){
+  const g=document.getElementById('agent-grid');g.innerHTML='';
+  ADEFS.forEach(a=>{
+    const lv=agentLevels[a.id]||1;
+    const d=document.createElement('div');
+    d.className='acard'+(selAgent===a.id?' sel':'');d.id='ac-'+a.id;
+    d.innerHTML=`<div class="acard-em">${a.emoji}</div><div class="acard-nm">${a.name}</div><div class="acard-tr">${a.trait}</div><div class="acard-lv">Lv.${lv}</div>`;
+    d.onclick=()=>selectA(a.id);g.appendChild(d);
+  });
+  const cr=document.getElementById('cur-setup');cr.innerHTML='';
+  CURR.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='cbtn'+(c.code===cur.code?' act':'');
+    b.textContent=c.flag+' '+c.code;
+    b.onclick=()=>{cur=c;buildSetup();updB(document.getElementById('bslider').value);};
+    cr.appendChild(b);
+  });
+}
+
+function selectA(id){
+  selAgent=id;
+  document.querySelectorAll('.acard').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('ac-'+id).classList.add('sel');
+  const a=ADEFS[id];
+  document.getElementById('gobtn').disabled=false;
+  document.getElementById('gobtn').textContent=`${a.emoji} Start with ${a.name}!`;
+}
+
+function updB(v){budgetUSD=parseInt(v)*100;document.getElementById('bval').textContent=fmt(budgetUSD);}
+function showS(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function switchTab(t){activeTab=t;document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('act',['cards','skills'][i]===t));document.querySelectorAll('.tab-content').forEach((c,i)=>c.classList.toggle('act',['tab-cards','tab-skills'][i]==='tab-'+t));if(t==='skills')buildSkills();}
+
+function initAgents(){
+  const lv=agentLevels[selAgent]||1;
+  agents=ADEFS.map(a=>{
+    const boost=a.id===selAgent?(1+(lv-1)*.1):1;
+    return{...a,wealthUSD:(800+Math.floor(Math.random()*400))*boost,prevW:0,x:20+Math.floor(Math.random()*140),y:20+Math.floor(Math.random()*140)};
+  });
+  myPort=budgetUSD;myPoints=0;
+  cardCooldowns={};ownedSkills=new Set(agentSkillsPersist[selAgent]||[]);
+  EVENTS.forEach(e=>cardCooldowns[e.id]=0);
+  chartData=[];lowestRank=1;cardsUsedGame=0;
+  glitchState={initialWealth:{},lastCard:null,newsRepeat:0,prevNewsId:null,winStreak:{},agents};
+  agents.forEach(a=>glitchState.initialWealth[a.id]=a.wealthUSD);
+  glitchCooldown={};
+}
+
+function renderArena(){
+  const ar=document.getElementById('arena');ar.querySelectorAll('.agent-el').forEach(e=>e.remove());
+  agents.forEach(a=>{
+    const d=document.createElement('div');d.className='agent-el';d.id='ag-'+a.id;
+    d.style.left=a.x+'px';d.style.top=a.y+'px';
+    const ring=a.id===selAgent?'<div class="my-ring"></div>':'';
+    d.innerHTML=`<div style="position:relative;display:inline-block;">${ring}<div class="acirc" style="background:${a.bg};"><span style="font-size:18px;">${a.emoji}</span></div></div><div style="font-size:9px;color:#888;">${a.name}</div><div style="font-size:10px;font-weight:600;color:${a.tc};" id="aw-${a.id}">${fmt(a.wealthUSD)}</div>`;
+    ar.appendChild(d);
+  });drawLines();
+}
+
+function updAgent(a){const el=document.getElementById('ag-'+a.id);if(!el)return;el.style.left=a.x+'px';el.style.top=a.y+'px';const w=document.getElementById('aw-'+a.id);if(w)w.textContent=fmt(a.wealthUSD);}
+
+function drawLines(){
+  const svg=document.getElementById('lines');svg.innerHTML='';
+  [[0,2],[1,3],[2,4],[0,4],[1,2]].forEach(([a,b])=>{
+    const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',agents[a].x+21);l.setAttribute('y1',agents[a].y+21);
+    l.setAttribute('x2',agents[b].x+21);l.setAttribute('y2',agents[b].y+21);
+    l.setAttribute('stroke','#e0e0de');l.setAttribute('stroke-width','0.8');l.setAttribute('stroke-dasharray','3 5');
+    svg.appendChild(l);
+  });
+}
+
+function moveAgents(){
+  agents.forEach(a=>{a.x=Math.max(5,Math.min(145,a.x+(Math.random()-.5)*32));a.y=Math.max(5,Math.min(145,a.y+(Math.random()-.5)*32));updAgent(a);});drawLines();
+}
+
+function buildSkills(){
+  const g=document.getElementById('skill-grid');g.innerHTML='';
+  SKILLS.forEach(s=>{
+    const owned=ownedSkills.has(s.id);
+    const canBuy=!owned&&myPoints>=s.cost;
+    const d=document.createElement('div');
+    d.className='skill-card'+(owned?' owned':'');
+    d.innerHTML=`<div class="sk-em">${s.em}</div><div class="sk-nm">${s.name}</div><div class="sk-desc">${s.desc}</div><div class="sk-cost">${owned?'✓ Owned':'⭐ '+s.cost+' pts'}</div>`;
+    if(!owned&&canBuy)d.onclick=()=>buySkill(s.id);
+    if(!owned&&!canBuy)d.style.opacity='.5';
+    g.appendChild(d);
+  });
+}
+
+function buySkill(id){
+  const s=SKILLS.find(x=>x.id===id);if(!s||ownedSkills.has(id)||myPoints<s.cost)return;
+  myPoints-=s.cost;ownedSkills.add(id);
+  if(!agentSkillsPersist[selAgent])agentSkillsPersist[selAgent]=[];
+  if(!agentSkillsPersist[selAgent].includes(id))agentSkillsPersist[selAgent].push(id);
+  addLog(`${s.em} Skill unlocked: ${s.name}!`,'#6D28D9');
+  document.getElementById('pts-badge').textContent='⭐ '+myPoints+' pts';
+  buildSkills();
+}
+
+function buildCards(){
+  const chips=document.getElementById('card-chips');chips.innerHTML='';
+  EVENTS.forEach(e=>{
+    const cd=cardCooldowns[e.id]||0;
+    const b=document.createElement('button');
+    b.className='ecard';b.disabled=cd>0;
+    b.innerHTML=`${e.label} <span class="ecard-cd">${cd>0?'CD:'+cd:e.desc}</span>`;
+    b.onclick=()=>useCard(e.id);
+    chips.appendChild(b);
+  });
+}
+
+function useCard(id){
+  const e=EVENTS.find(x=>x.id===id);if(!e||(cardCooldowns[id]||0)>0)return;
+  cardCooldowns[id]=e.cd;cardsUsedGame++;glitchState.lastCard=id;setTimeout(()=>{if(glitchState.lastCard===id)glitchState.lastCard=null;},5000);
+  const myA=agents.find(a=>a.id===selAgent);
+  const sorted=[...agents].sort((a,b)=>b.wealthUSD-a.wealthUSD);
+  let msg='';
+  if(id==='boom'){agents.forEach(a=>a.wealthUSD*=1.20);msg='🚀 Bubble triggered! All agents +20%!';}
+  else if(id==='crash'){agents.filter(a=>a.id!==selAgent).forEach(a=>{const r=a.style==='conservative'&&a.crashResist?a.crashResist:1;a.wealthUSD*=(1-.25*r);});msg='💥 Market crash! Rivals −25%';}
+  else if(id==='tax'){const top=sorted[0];const tax=top.wealthUSD*.15;top.wealthUSD-=tax;myA.wealthUSD+=tax*.5;msg=`📜 Tax! Collected ${fmt(tax)} from ${top.name}!`;}
+  else if(id==='intel'){const b=ownedSkills.has('alliance')?1.225:1.15;myA.wealthUSD*=b;msg=`🔍 Intel advantage! +${Math.round((b-1)*100)}%`;}
+  else if(id==='chaos'){const ws=agents.map(a=>a.wealthUSD).sort(()=>Math.random()-.5);agents.forEach((a,i)=>a.wealthUSD=ws[i]);msg='🌪️ Chaos! All wealth shuffled!';}
+  else if(id==='ally'){const sec=sorted[1];const b=ownedSkills.has('alliance')?1.15:1.10;myA.wealthUSD*=b;sec.wealthUSD*=b;msg=`🤝 Alliance with ${sec.name}! Both +${Math.round((b-1)*100)}%`;}
+  agents.forEach(a=>{if(a.wealthUSD<20)a.wealthUSD=20;});
+  const fl=document.getElementById('eflash');fl.textContent=msg;fl.style.background=id==='crash'?'#FEE2E2':'#D1FAE5';fl.style.color=id==='crash'?'#7F1D1D':'#064E3B';fl.style.display='block';setTimeout(()=>fl.style.display='none',2500);
+  addLog(msg,e.color);agents.forEach(a=>updAgent(a));updateLB();updateMetrics();buildCards();
+}
+
+function fireNews(){
+  const override=currentMode==='daily'?NEWS_POOL.find(n=>n.id===DAILY_SCENARIO.newsOverride):null;
+  const pool=NEWS_POOL.filter(n=>n.id!==(currentNews?.id));
+  currentNews=override||pool[Math.floor(Math.random()*pool.length)];
+  document.getElementById('news-text').textContent=currentNews.text;
+  document.getElementById('news-eff').textContent=currentNews.eff;
+  agents.forEach(a=>{
+    let mult=currentNews.affects==='global'?currentNews.mult:currentNews.affects===a.style?currentNews.mult:1;
+    if(a.id===selAgent&&ownedSkills.has('intel'))mult=1+(mult-1)*2;
+    if(mult!==1){a.wealthUSD*=mult;if(a.id===selAgent)addLog(`📰 News effect on ${a.name}: ×${mult.toFixed(1)}`,'#B45309');}
+  });
+  agents.forEach(a=>{if(a.wealthUSD<20)a.wealthUSD=20;});
+}
+
+function updateLB(){
+  const sorted=[...agents].sort((a,b)=>b.wealthUSD-a.wealthUSD);
+  const myRk=sorted.findIndex(a=>a.id===selAgent)+1;
+  if(myRk>lowestRank)lowestRank=myRk;
+  document.getElementById('lboard').innerHTML=sorted.map((a,i)=>{
+    const diff=a.wealthUSD-a.prevW;
+    const chg=diff>=0?`<span style="color:#15803D;">+${fmt(diff)}</span>`:`<span style="color:#DC2626;">${fmt(diff)}</span>`;
+    const isMe=a.id===selAgent;
+    return`<div class="lb-row" style="${isMe?'background:#F1FAF6;border-radius:4px;padding:2px 5px;':''}"><div class="lb-rk">${i+1}</div><div class="lb-nm">${a.emoji} ${a.name}${isMe?' ←':''}</div><div class="lb-wl" style="color:${a.tc};">${fmt(a.wealthUSD)}</div><div class="lb-ch">${chg}</div></div>`;
+  }).join('');
+}
+
+function updateChart(){
+  const myA=agents.find(a=>a.id===selAgent);
+  chartData.push(myA.wealthUSD*cur.rate);
+  if(chartData.length>40)chartData.shift();
+  if(!chartInst){
+    const ctx=document.getElementById('chart').getContext('2d');
+    chartInst=new Chart(ctx,{type:'line',data:{labels:chartData.map((_,i)=>i),datasets:[{data:chartData,borderColor:'#1D9E75',borderWidth:1.5,pointRadius:0,fill:true,backgroundColor:'rgba(29,158,117,.1)',tension:.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}},animation:{duration:200}}});
+  } else{chartInst.data.labels=chartData.map((_,i)=>i);chartInst.data.datasets[0].data=[...chartData];chartInst.update('none');}
+}
+
+function updateMetrics(){
+  if(!agents.length)return;
+  const lead=[...agents].sort((a,b)=>b.wealthUSD-a.wealthUSD)[0];
+  const total=agents.reduce((s,a)=>s+a.wealthUSD,0);
+  document.getElementById('mt').textContent=st.turn;
+  document.getElementById('mtr').textContent=st.trades;
+  document.getElementById('ml2').textContent=lead.emoji+' '+lead.name;
+  document.getElementById('mtot').textContent=fmt(total);
+  document.getElementById('rnd').textContent=`R${st.round}/20`;
+  document.getElementById('pval').textContent='Portfolio: '+fmt(myPort);
+  document.getElementById('pts-badge').textContent='⭐ '+myPoints+' pts';
+}
+
+function addLog(text,color){
+  logs.unshift({text,color});if(logs.length>60)logs.pop();
+  document.getElementById('log').innerHTML=logs.map(l=>`<div class="le" style="color:${l.color||'#555'};">${l.text}</div>`).join('');
+}
+
+function showBubble(agent,msg,color,isGlitch){
+  const ar=document.getElementById('arena');
+  const b=document.createElement('div');
+  b.className='bubble'+(isGlitch?' glitch':'');
+  b.style.left=Math.min(agent.x,120)+'px';
+  b.style.top=Math.max(0,agent.y-42)+'px';
+  b.style.borderColor=color||'#e0e0de';
+  b.textContent=msg;
+  ar.appendChild(b);
+  setTimeout(()=>b.remove(),3200);
+}
+
+function runTurn(){
+  if(st.paused)return;
+  st.turn++;
+  glitchState.agents=agents;
+  agents.forEach(a=>a.prevW=a.wealthUSD);
+  Object.keys(cardCooldowns).forEach(k=>{if(cardCooldowns[k]>0)cardCooldowns[k]--;});
+  const actor=agents[Math.floor(Math.random()*agents.length)];
+  const others=agents.filter(a=>a.id!==actor.id);
+  const target=others[Math.floor(Math.random()*others.length)];
+  const good=GOODS[Math.floor(Math.random()*GOODS.length)];
+
+  // GLITCH CHECK
+  const g=GLITCHES[actor.id];
+  const cd=glitchCooldown[actor.id]||0;
+  if(g&&cd===0&&g.check(actor,glitchState)){
+    const msg=g.msgs[Math.floor(Math.random()*g.msgs.length)];
+    showBubble(actor,msg,g.color,true);
+    addLog(`${actor.emoji} ${actor.name}: "${msg}"`,g.color);
+    if(g.onTrigger)g.onTrigger(actor,glitchState);
+    agents.forEach(a=>{if(a.wealthUSD<20)a.wealthUSD=20;});
+    glitchCooldown[actor.id]=4;
+    if(g.skipTurn){moveAgents();updateLB();updateMetrics();return;}
+  }
+  if(cd>0)glitchCooldown[actor.id]=cd-1;
+
+  const p=(40+Math.random()*200)*(currentMode==='daily'?DAILY_SCENARIO.bonusMult:1);
+  const phase=st.round<10?'early':'late';
+  const phaseM=actor.phaseBoost?actor.phaseBoost[phase]:1;
+  const newsB=actor.newsBonus&&currentNews?.affects===actor.style?actor.newsBonus:1;
+  const speedB=actor.id===selAgent&&ownedSkills.has('speed')?1.2:1;
+  const predB=actor.id===selAgent&&ownedSkills.has('predator')&&target.wealthUSD<actor.wealthUSD*.7?1.15:1;
+  let d=0,lc='#15803D';
+  if(actor.style==='aggressive'){d=p*.28*phaseM*newsB*speedB;actor.wealthUSD+=d;target.wealthUSD-=d*.5;lc='#DC2626';}
+  else if(actor.style==='conservative'){d=p*.07*newsB*speedB;actor.wealthUSD+=d;target.wealthUSD+=d*.3;}
+  else if(actor.style==='analytical'){d=p*.22*(Math.random()>.35?1:-1)*newsB*speedB;actor.wealthUSD+=d;lc=d>0?'#15803D':'#DC2626';}
+  else if(actor.style==='opportunistic'){d=(target.wealthUSD<actor.wealthUSD*.6?p*.32:p*.08)*newsB*speedB*predB;actor.wealthUSD+=d;target.wealthUSD-=d*.28;lc='#B45309';}
+  else{const vol=actor.volatility||1;d=(Math.random()-.38)*p*vol*speedB;actor.wealthUSD+=d;lc=d>0?'#15803D':'#DC2626';}
+  if(actor.id===selAgent&&d<0&&ownedSkills.has('defense'))d*=.7;
+
+  if(d>0)glitchState.winStreak[actor.id]=(glitchState.winStreak[actor.id]||0)+1;
+  else glitchState.winStreak[actor.id]=0;
+
+  agents.forEach(a=>{if(a.wealthUSD<20)a.wealthUSD=20;});
+  st.trades++;
+  addLog(`${actor.emoji} ${actor.name} → ${target.emoji} ${target.name}  "${good}"  ${d>=0?'+':''}${fmt(d)}`,lc);
+  const ar=document.getElementById('arena');
+  const fl=document.createElement('div');fl.className='tf';fl.style.left=(actor.x+14)+'px';fl.style.top=actor.y+'px';fl.style.color=lc;fl.textContent=(d>=0?'+':'')+fmt(d);ar.appendChild(fl);setTimeout(()=>fl.remove(),2000);
+  if(st.turn%4===0){
+    st.round++;
+    // Track news repeats for Coda glitch
+    if(currentNews&&currentNews.id===glitchState.prevNewsId)glitchState.newsRepeat++;
+    else glitchState.newsRepeat=0;
+    glitchState.prevNewsId=currentNews?.id;
+    fireNews();
+    const sorted=[...agents].sort((a,b)=>b.wealthUSD-a.wealthUSD);
+    const myRk=sorted.findIndex(a=>a.id===selAgent)+1;
+    const rate=myRk===1?.14:myRk===2?.07:myRk===3?.02:myRk===4?-.02:-.05;
+    const div=myPort*rate;myPort+=div;if(myPort<10)myPort=10;
+    if(div<0&&ownedSkills.has('resilience'))myPort+=myPort*.10;
+    const ptGain=myRk<=2?2:myRk===3?1:0;myPoints+=ptGain;
+    addLog(`R${st.round}: Rank ${myRk} — dividend ${div>=0?'+':''}${fmt(div)}  +${ptGain} pts`,div>=0?'#15803D':'#DC2626');
+    buildCards();if(activeTab==='skills')buildSkills();
+    if(st.round>=20){endGame();return;}
+  }
+  moveAgents();updateLB();updateMetrics();updateChart();
+}
+function addInvest(){const add=budgetUSD*.2;myPort+=add;addLog(`💰 Added funds: +${fmt(add)}`,'#1D4ED8');updateMetrics();}
+
+function endGame(){
+  st.running=false;clearInterval(st.interval);
+  checkStreak();persistence.totalGames++;
+  if(currentMode==='daily'){persistence.dailyPlayed=true;persistence.dailyPlayCount++;}
+  const myA=agents.find(a=>a.id===selAgent);
+  const sorted=[...agents].sort((a,b)=>b.wealthUSD-a.wealthUSD);
+  const myRk=sorted.findIndex(a=>a.id===selAgent)+1;
+  const pnl=myPort-budgetUSD;
+  agentLevels[selAgent]=(agentLevels[selAgent]||1)+1;
+  persistence.weeklyPts['me']=(persistence.weeklyPts['me']||0)+Math.max(0,Math.round(myPort));
+  const newB=checkBadges(myRk,myPort,cardsUsedGame,lowestRank);
+  savePersistence();
+  const shareText=`Agenomics ${currentMode==='daily'?'⚡ Daily':'🎮 Free Play'}\n${myRk===1?'🥇':myRk===2?'🥈':myRk===3?'🥉':'💸'} Rank ${myRk}/5  ${pnl>=0?'📈':'📉'} P&L ${pnl>=0?'+':''}${fmt(pnl)}\n🔥 ${persistence.streak}-day streak\n#Agenomics #AIEconomy`;
+  document.getElementById('re').textContent=myRk===1?'🏆':myRk===2?'🥈':myRk===3?'🥉':'😅';
+  document.getElementById('rt').textContent=myRk===1?'Victory!':myRk<=2?'So close — 2nd place!':myRk<=3?'3rd place!':'Better luck next time!';
+  document.getElementById('rs2').textContent=`${myA.emoji} ${myA.name} finished ${myRk}${myRk===1?'st':myRk===2?'nd':myRk===3?'rd':'th'}. ${persistence.streak}-day streak active!`;
+  document.getElementById('rfin').textContent=fmt(myPort);
+  document.getElementById('rpnl').textContent=(pnl>=0?'+':'')+fmt(pnl);
+  document.getElementById('rpnl').style.color=pnl>=0?'#15803D':'#DC2626';
+  document.getElementById('rrk').textContent=`${myRk} / 5`;
+  document.getElementById('share-text').textContent=shareText;
+  if(newB.length>0){document.getElementById('new-badges').style.display='block';document.getElementById('nb-list').innerHTML=newB.map(b=>`<span style="font-size:24px;" title="${b.name}">${b.em}</span>`).join('');}
+  else document.getElementById('new-badges').style.display='none';
+  showS('s-result');
+}
+
+function startGame(){
+  if(selAgent===null)return;
+  st={turn:0,trades:0,round:0,running:true,paused:false,interval:null};
+  logs=[];chartData=[];
+  if(chartInst){chartInst.destroy();chartInst=null;}
+  document.getElementById('log').innerHTML='';
+  const a=ADEFS[selAgent];
+  document.getElementById('mbadge').textContent=a.emoji+' '+a.name;
+  initAgents();showS('s-game');renderArena();updateLB();updateMetrics();buildCards();buildSkills();
+  addLog(currentMode==='daily'?'⚡ Daily Challenge started!':'🎮 Game started — use event cards wisely!','#15803D');
+  st.inter

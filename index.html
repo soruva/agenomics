@@ -38,7 +38,11 @@
 
         // --- 2. ここに「あなたの runTurn 関数」をそのまま貼る ---
         function runTurn() {
-            // (ここに、あなたがさっき貼ってくれた長いコードを入れる)
+            if(st.paused)return;
+  st.turn++;
+  glitchState.agents=agents;
+  agents.forEach(a=>a.prevW=a.wealthUSD);
+  Object.keys(cardCooldowns).forEach(k=>{if(cardCooldowns[k]>0)cardCooldowns[k]--;
             console.log("Turn: " + st.turn); // 動作確認用
         }
 

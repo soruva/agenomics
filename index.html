@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Agenomics Core v1.3 | God Mode Active</title>
+    <title>Agenomics Core v1.4 | Death & Neon</title>
     <style>
         :root {
             --bg: #050508; --card: #12121a; --accent: #4cc9f0;
@@ -17,42 +17,41 @@
             grid-template-areas: "header header header" "nav arena rank" "footer footer footer";
             height: 100vh; overflow: hidden;
         }
-        h1 { grid-area: header; margin: 0; display: flex; align-items: center; padding-left: 20px; font-size: 0.9rem; color: var(--accent); border-bottom: 1px solid rgba(76, 201, 240, 0.2); letter-spacing: 2px; }
-        .controls { grid-area: nav; padding: 15px; background: var(--card); border-right: 1px solid rgba(76, 201, 240, 0.1); display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
-        #arena { grid-area: arena; position: relative; background: #08080c; margin: 10px; border-radius: 4px; border: 1px solid rgba(76, 201, 240, 0.1); overflow: hidden; transition: 0.2s; }
-        #leaderboard { grid-area: rank; padding: 20px; background: var(--card); border-left: 1px solid rgba(76, 201, 240, 0.1); }
+        h1 { grid-area: header; margin: 0; display: flex; align-items: center; padding-left: 20px; font-size: 0.9rem; color: var(--accent); border-bottom: 1px solid var(--border); letter-spacing: 2px; }
+        .controls { grid-area: nav; padding: 15px; background: var(--card); border-right: 1px solid rgba(76,201,240,0.1); display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+        #arena { grid-area: arena; position: relative; background: #08080c; margin: 10px; border-radius: 4px; border: 1px solid rgba(76,201,240,0.1); overflow: hidden; }
+        #leaderboard { grid-area: rank; padding: 20px; background: var(--card); border-left: 1px solid rgba(76,201,240,0.1); }
         #log { grid-area: footer; background: #000; margin: 0 10px 10px 10px; padding: 12px; border-radius: 2px; overflow-y: auto; font-size: 0.7rem; border-top: 1px solid var(--accent); }
         
         .btn { padding: 6px; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 2px; cursor: pointer; text-align: center; font-size: 0.6rem; font-weight: bold; transition: 0.1s; text-transform: uppercase; }
-        .btn:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 10px var(--accent); }
+        .btn:hover { background: var(--accent); color: var(--bg); }
         .btn.card { border-color: var(--yellow); color: var(--yellow); }
-        .btn.card:hover { background: var(--yellow); color: var(--bg); }
-        .btn:disabled { opacity: 0.2; cursor: not-allowed; border-color: #444; color: #444; }
+        .btn:disabled { opacity: 0.2; cursor: not-allowed; }
 
-        .agent { position: absolute; font-size: 42px; transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1); user-select: none; z-index: 10; }
-        .stat-box { padding: 8px; border: 1px solid #333; font-size: 0.65rem; color: var(--yellow); margin-bottom: 5px; }
-        .fx-item { display: flex; justify-content: space-between; font-size: 0.65rem; margin-bottom: 2px; padding: 2px 4px; border-radius: 2px; }
+        .agent { position: absolute; font-size: 42px; transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); user-select: none; z-index: 10; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .bubble { position: absolute; background: var(--card); border: 1px solid var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 0.6rem; bottom: 55px; left: 50%; transform: translateX(-50%); white-space: nowrap; z-index: 20; color: white; box-shadow: 0 0 10px var(--accent); }
+        .fx-item { display: flex; justify-content: space-between; font-size: 0.65rem; margin-bottom: 2px; }
         .trend-up { color: var(--green); } .trend-down { color: var(--red); }
+        canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
     </style>
 </head>
 <body>
-    <h1>AGENOMICS_SYSTEM_V1.3 // GOD_MODE_PROTOCOL_ENGAGED</h1>
+    <h1>AGENOMICS_SYSTEM_V1.4 // NEON_DEATH_PROTOCOL</h1>
     <nav class="controls">
-        <div class="stat-box">INTERVENTION_PTS: <span id="player-points">0</span></div>
-        <div class="btn" onclick="startMode()">INITIALIZE_SIMULATION</div>
-        <div class="btn" onclick="togglePause()">HALT_TEMPORAL_FLOW</div>
+        <div style="padding:8px; border:1px solid #333; font-size:0.65rem; color:var(--yellow);">POINTS: <span id="player-points">0</span></div>
+        <div class="btn" onclick="startMode()">RUN_SIMULATION</div>
+        <div class="btn" onclick="togglePause()">PAUSE/RESUME</div>
         
         <div id="fx-panel" style="margin-top:10px;">
-            <div style="font-size:0.6rem; color:var(--accent); margin-bottom:5px;">LIVE_FX_INDICES</div>
+            <div style="font-size:0.6rem; color:var(--accent); margin-bottom:5px;">MARKET_RATES</div>
             <div id="fx-rates"></div>
         </div>
 
         <hr style="width:100%; border:0; border-top:1px solid #333; margin:10px 0;">
-        <div style="font-size:0.6rem; color:var(--yellow); margin-bottom:5px;">MANIPULATION_DECK</div>
-        <button id="card-moon" class="btn card" onclick="triggerEvent('CRYPTO_MOON')" disabled>CRYPTO_MOON (5pts)</button>
-        <button id="card-jpy" class="btn card" onclick="triggerEvent('JPY_HIKE')" disabled>JPY_INTERVENTION (4pts)</button>
-        <button id="card-conv" class="btn card" onclick="triggerEvent('CONVERT')" disabled>FORCE_CONVERSION (3pts)</button>
-        <button id="card-tax" class="btn card" onclick="triggerEvent('WHALE_TAX')" disabled>WHALE_TAX_STRKE (8pts)</button>
+        <button id="card-moon" class="btn card" onclick="triggerEvent('CRYPTO_MOON')" disabled>CRYPTO_MOON (5pt)</button>
+        <button id="card-jpy" class="btn card" onclick="triggerEvent('JPY_HIKE')" disabled>JPY_HIKE (4pt)</button>
+        <button id="card-tax" class="btn card" onclick="triggerEvent('WHALE_TAX')" disabled>WHALE_TAX (8pt)</button>
+        <button id="card-death" class="btn card" onclick="triggerEvent('ELIMINATE')" disabled>INSTANT_KILL (10pt)</button>
     </nav>
 
     <main id="arena"></main>
@@ -60,13 +59,18 @@
         <div style="color:var(--accent); font-size:0.8rem; font-weight:bold; margin-bottom:15px; border-bottom:1px solid #333;">NET_WORTH_USD</div>
         <div id="rank-list"></div>
     </aside>
-    <footer id="log">AWAITING_GOD_INPUT...</footer>
+    <footer id="log">SYSTEM_READY...</footer>
 
     <script>
         let st = { paused: false, turn: 0, points: 0 };
         let rates = { USD: 1, JPY: 150, EUR: 0.92, BTC: 0.000015, GOLD: 0.00045 };
         let prevRates = {...rates};
         
+        const NEW_AGENT_POOL = [
+            {name:'NEO', emoji:'🕶️'}, {name:'VIVI', emoji:'👽'}, {name:'LUNA', emoji:'🌙'}, 
+            {name:'BOSS', emoji:'👔'}, {name:'PUNK', emoji:'🤘'}, {name:'ZEN', emoji:'🧘'}
+        ];
+
         let agents = [
             { id: 'aria', name: 'ARIA', emoji: '💃', x: 100, y: 100, wallet: { USD: 100, JPY: 15000, BTC: 0 } },
             { id: 'bolt', name: 'BOLT', emoji: '⚡', x: 300, y: 100, wallet: { USD: 100, EUR: 50, GOLD: 0.1 } },
@@ -79,10 +83,10 @@
             if(window.gameInterval) clearInterval(window.gameInterval);
             window.gameInterval = setInterval(runTurn, 850);
             renderAgents();
-            addLog("!! GOD_MODE_ACTIVE: REALITY_TUNING_INITIALIZED", "#4cc9f0");
+            addLog("!! PROTOCOL_1.4_ENGAGED: NEON_VISUALS_ON", "#4cc9f0");
         }
 
-        function togglePause() { st.paused = !st.paused; addLog(st.paused ? "!! TIME_FROZEN" : ">> TIME_RELEASED", "#ffd166"); }
+        function togglePause() { st.paused = !st.paused; }
 
         function addLog(msg, color) {
             const l = document.getElementById('log');
@@ -92,70 +96,85 @@
 
         function renderAgents() {
             const ar = document.getElementById('arena');
-            ar.innerHTML = '<canvas id="trade-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>';
+            ar.innerHTML = '<canvas id="trade-canvas"></canvas>';
+            const c = document.getElementById('trade-canvas');
+            c.width = ar.clientWidth; c.height = ar.clientHeight;
             agents.forEach(a => {
                 const d = document.createElement('div');
                 d.className = 'agent'; d.id = 'agent-' + a.id;
                 d.style.left = a.x + 'px'; d.style.top = a.y + 'px';
                 d.textContent = a.emoji; ar.appendChild(d);
             });
-            const c = document.getElementById('trade-canvas');
-            c.width = ar.clientWidth; c.height = ar.clientHeight;
+        }
+
+        function drawNeonBeam(from, to) {
+            const c = document.getElementById('trade-canvas'); if(!c) return;
+            const ctx = c.getContext('2d');
+            ctx.strokeStyle = '#4cc9f0'; ctx.lineWidth = 3; ctx.shadowBlur = 10; ctx.shadowColor = '#4cc9f0';
+            ctx.beginPath(); ctx.moveTo(from.x + 25, from.y + 25); ctx.lineTo(to.x + 25, to.y + 25);
+            ctx.stroke();
+            setTimeout(() => ctx.clearRect(0, 0, c.width, c.height), 150);
         }
 
         function getWealthUSD(agent) {
             return Object.keys(agent.wallet).reduce((total, cur) => total + (agent.wallet[cur] / rates[cur]), 0);
         }
 
+        function showBubble(id, txt) {
+            const el = document.getElementById('agent-' + id); if(!el) return;
+            const b = document.createElement('div'); b.className = 'bubble'; b.textContent = txt;
+            el.appendChild(b); setTimeout(() => b.remove(), 1200);
+        }
+
         function updateUI() {
             const list = document.getElementById('rank-list');
             const sorted = [...agents].sort((a, b) => getWealthUSD(b) - getWealthUSD(a));
-            list.innerHTML = sorted.map((a, i) => `<div>${i+1}. ${a.emoji} <span style="color:white">$${Math.floor(getWealthUSD(a))}</span></div>`).join('');
+            list.innerHTML = sorted.map((a, i) => `<div>${i+1}. ${a.emoji} $${Math.floor(getWealthUSD(a))}</div>`).join('');
             
             const fx = document.getElementById('fx-rates');
             fx.innerHTML = Object.keys(rates).filter(c => c !== 'USD').map(c => {
                 const trend = rates[c] < prevRates[c] ? 'trend-up' : 'trend-down';
-                const arrow = rates[c] < prevRates[c] ? '▲' : '▼';
-                return `<div class="fx-item"><span>${c}</span><span class="${trend}">${arrow} ${rates[c].toFixed(c==='BTC'?7:2)}</span></div>`;
+                return `<div class="fx-item"><span>${c}</span><span class="${trend}">${rates[c] < prevRates[c] ? '▲' : '▼'} ${rates[c].toFixed(c==='BTC'?6:2)}</span></div>`;
             }).join('');
             
             document.getElementById('player-points').textContent = st.points;
             document.getElementById('card-moon').disabled = st.points < 5;
             document.getElementById('card-jpy').disabled = st.points < 4;
-            document.getElementById('card-conv').disabled = st.points < 3;
             document.getElementById('card-tax').disabled = st.points < 8;
+            document.getElementById('card-death').disabled = st.points < 10;
         }
 
         function triggerEvent(type) {
             const ar = document.getElementById('arena');
             if (type === 'CRYPTO_MOON') {
-                st.points -= 5;
-                rates.BTC /= (2 + Math.random() * 3); // 200%-500% increase
-                addLog("🚀 [GOD_ACT] CRYPTO_MOON: BTC VALUE SURGED! TO THE MOON!", "#06d6a0");
-                ar.style.boxShadow = "inset 0 0 50px #06d6a0";
-            } else if (type === 'JPY_HIKE') {
-                st.points -= 4;
-                rates.JPY *= 0.8; // 20% value hike
-                addLog("💴 [GOD_ACT] JPY_INTERVENTION: BOJ MOVED THE MARKET!", "#4cc9f0");
-                ar.style.boxShadow = "inset 0 0 50px #4cc9f0";
-            } else if (type === 'CONVERT') {
-                st.points -= 3;
-                agents.forEach(a => {
-                    const total = getWealthUSD(a);
-                    const bestCur = Object.keys(rates).sort((x,y) => (1/rates[x]) - (1/rates[y]))[0];
-                    a.wallet = { [bestCur]: total * rates[bestCur] };
-                });
-                addLog("♻️ [GOD_ACT] FORCE_CONVERSION: ALL ASSETS SWAPPED TO STRONGEST CURRENCY", "#ffd166");
+                st.points -= 5; rates.BTC /= 3; addLog("🚀 BTC_MOON_SHOT_EXECUTED", "#06d6a0");
+            } else if (type === 'ELIMINATE') {
+                st.points -= 10;
+                const victim = [...agents].sort((a,b) => getWealthUSD(a) - getWealthUSD(b)); // Kill the weakest
+                addLog(`☠️ EXECUTION: ${victim.name} ELIMINATED BY GOD`, "#ef476f");
+                eliminateAgent(victim.id);
             } else if (type === 'WHALE_TAX') {
                 st.points -= 8;
-                const whale = [...agents].sort((a,b) => getWealthUSD(b) - getWealthUSD(a))[0];
-                const tax = getWealthUSD(whale) * 0.4;
-                whale.wallet.USD = (whale.wallet.USD || 0) - (tax * rates.USD);
-                agents.forEach(a => a.wallet.USD = (a.wallet.USD || 0) + (tax/5));
-                addLog(`⚖️ [GOD_ACT] WHALE_TAX: $${Math.floor(tax)} REPOSSESSED FROM ${whale.name}`, "#ef476f");
+                const whale = [...agents].sort((a,b) => getWealthUSD(b) - getWealthUSD(a));
+                whale.wallet.USD -= 150;
+                addLog(`⚖️ WHALE_TAX STRUCK ${whale.name}`, "#ef476f");
             }
-            setTimeout(() => ar.style.boxShadow = "none", 1000);
+            ar.style.background = "#222"; setTimeout(() => ar.style.background = "#08080c", 200);
             updateUI();
+        }
+
+        function eliminateAgent(id) {
+            const index = agents.findIndex(a => a.id === id);
+            if (index !== -1) {
+                const oldName = agents[index].name;
+                const next = NEW_AGENT_POOL[Math.floor(Math.random() * NEW_AGENT_POOL.length)];
+                agents[index] = { 
+                    id: 'new-' + Date.now(), name: next.name, emoji: next.emoji, 
+                    x: Math.random()*300, y: Math.random()*300, wallet: { USD: 100 } 
+                };
+                addLog(`✨ GENESIS: ${next.name} ENTERED THE MARKET`, "#4cc9f0");
+                renderAgents();
+            }
         }
 
         function runTurn() {
@@ -163,30 +182,37 @@
             st.turn++;
             prevRates = {...rates};
 
-            // Market Volatility
-            rates.JPY += (Math.random() - 0.5) * 1.5;
-            rates.BTC *= (1 + (Math.random() - 0.5) * 0.08);
-            rates.GOLD *= (1 + (Math.random() - 0.5) * 0.03);
+            // FX Fluctuations
+            rates.BTC *= (1 + (Math.random() - 0.5) * 0.12);
+            rates.JPY += (Math.random() - 0.5) * 2;
 
-            if (st.turn % 8 === 0) { st.points++; updateUI(); }
+            if (st.turn % 8 === 0) st.points++;
 
-            // Transaction
+            // Death Check
+            agents.forEach(a => {
+                if (getWealthUSD(a) < -50) {
+                    addLog(`💀 BANKRUPTCY: ${a.name} PERISHED`, "#ef476f");
+                    eliminateAgent(a.id);
+                }
+            });
+
+            // Trade
             const actor = agents[Math.floor(Math.random() * agents.length)];
             const target = agents.filter(a => a.id !== actor.id)[Math.floor(Math.random()*4)];
-            const amountUSD = Math.floor(Math.random() * 40) + 15;
+            const amount = Math.floor(Math.random() * 45) + 15;
 
-            // Actor steals/earns from Target
-            target.wallet.USD = (target.wallet.USD || 0) - amountUSD;
-            actor.wallet.USD = (actor.wallet.USD || 0) + amountUSD;
+            actor.wallet.USD = (actor.wallet.USD || 0) + amount;
+            target.wallet.USD = (target.wallet.USD || 0) - amount;
 
-            addLog(`${actor.emoji}${actor.name} extracted $${amountUSD} from ${target.name}`, "#06d6a0");
+            drawNeonBeam(actor, target);
+            addLog(`${actor.name} drained $${amount} from ${target.name}`, "#06d6a0");
             
             // Movement
             const ar = document.getElementById('arena');
             agents.forEach(a => {
-                a.x += (Math.random() - 0.5) * 110; a.y += (Math.random() - 0.5) * 110;
-                a.x = Math.max(30, Math.min(ar.clientWidth - 60, a.x));
-                a.y = Math.max(30, Math.min(ar.clientHeight - 60, a.y));
+                a.x += (Math.random() - 0.5) * 120; a.y += (Math.random() - 0.5) * 120;
+                a.x = Math.max(20, Math.min(ar.clientWidth - 60, a.x));
+                a.y = Math.max(20, Math.min(ar.clientHeight - 60, a.y));
                 const el = document.getElementById('agent-' + a.id);
                 if(el) { el.style.left = a.x + 'px'; el.style.top = a.y + 'px'; }
             });

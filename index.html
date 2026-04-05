@@ -58,7 +58,12 @@
         if (cardCooldowns[k] > 0) cardCooldowns[k]--;
     });
 
-    // --- ここに本来の取引ロジックが入ります ---
+        // --- 取引ロジック (確実に資産を増減させる) ---
+    const actor = agents[Math.floor(Math.random() * agents.length)];
+    const profit = Math.floor(Math.random() * 40) + 10; // 10〜50ドル増える
+    actor.wealthUSD += profit;
+
+    addLog(`${actor.emoji} ${actor.name} gained $${profit} (Total: $${fmt(actor.wealthUSD)})`, "#15803D");
     // 一旦、動作確認用にログを出します
     console.log("Turn processed: " + st.turn);
     addLog(`Turn ${st.turn}: 経済が動いています...`, "#aaa");

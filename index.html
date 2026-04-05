@@ -89,7 +89,19 @@
             l.scrollTop = l.scrollHeight;
         }
         function fmt(n) { return Math.floor(n).toLocaleString(); }
-        function moveAgents() { renderAgents(); }
+        function moveAgents() {
+            agents.forEach(a => {
+        // 現在の位置にランダムな動きを加える
+        a.x += (Math.random() - 0.5) * 40;
+        a.y += (Math.random() - 0.5) * 40;
+
+        // アリーナ（400x300）からはみ出さないようにガード
+        a.x = Math.max(10, Math.min(360, a.x));
+        a.y = Math.max(10, Math.min(260, a.y));
+    });
+    // 画面上の絵文字の位置を更新する
+    renderAgents();
+        }
         function updateLB() {} function updateMetrics() {} function updateChart() {}
         function showBubble(a, m, c) { addLog(`[Bubble] ${a.name}: ${m}`, c); }
 

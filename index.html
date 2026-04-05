@@ -691,6 +691,20 @@ const updateChart = () => {};
 const fireNews = () => {};
 const buildCards = () => {};
 const fmt = (n) => Math.floor(n).toLocaleString();
+
+// --- ボタンやタブを動かすための関数 ---
+function startMode(mode) {
+  console.log("Game Start: " + mode);
+  currentMode = mode;
+  // ここでゲーム開始の初期化処理（タイマー開始など）を入れる想定
+  setInterval(runTurn, 1000); // 1秒ごとにターンを進めるテスト用
+}
+
+function showTab(tabName) {
+  console.log("Switching to tab: " + tabName);
+  activeTab = tabName;
+  // 本来はここで表示・非表示のDOM操作をします
+}
   
 function runTurn(){
   if(st.paused)return;

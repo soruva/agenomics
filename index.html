@@ -42,54 +42,41 @@
     if (st.paused) return;
     st.turn++;
 
-    // --- 1. Ariaのバグ判定 (祝杯モード) ---
-    const aria = agents.find(a => a.id === 'aria');
-    if (aria && aria.wealthUSD >= 200) {
-        addLog("🍾 Aria: Too rich! Going to party... 🥂", "#FCD34D");
-        aria.wealthUSD -= 60; // 豪遊して市場からお金が消える
-        return;
-    }
-
-    // --- 2. 経済ロジック (奪い合いとモノの介在) ---
-    const actor = agents[Math.floor(Math.random() * agents.length)];
-    const others = agents.filter(a => a.id !== actor.id);
-    const target = others[Math.floor(Math.random() * others.length)]; // 相手を選ぶ
-    const good = GOODS[Math.floor(Math.random() * GOODS.length)]; // 何を取引するか
-
-    const amount = Math.floor(Math.random() * 40) + 10; // 取引額 ($10〜50)
-
-    // 資産の移動（奪い合い）
-    actor.wealthUSD += amount;
-    target.wealthUSD -= amount;
-
-    // 経済を回している感のあるログ
-    addLog(`${actor.emoji} ${actor.name} bought ${good} from ${target.emoji} ${target.name}: +$${amount}`, "#15803D");
-    addLog(`   💸 ${target.name} lost $${amount} in the deal.`, "#DC2626");
-
-    // 画面更新
-    moveAgents();
-}     
-    
-    // エージェントの状態を更新
+    // 1. エージェントの状態を更新
     glitchState.agents = agents;
     agents.forEach(a => a.prevW = a.wealthUSD);
 
-    // カードのクールダウンを減らす（ループを正しく閉じました）
+    // 2. クールダウンの処理
     Object.keys(cardCooldowns).forEach(k => {
         if (cardCooldowns[k] > 0) cardCooldowns[k]--;
     });
 
-        // --- 取引ロジック (確実に資産を増減させる) ---
+    // 3. Ariaのバグ判定 (祝杯モード)
+    const aria = agents.find(a => a.id === 'aria');
+    if (aria && aria.wealthUSD >= 200) {
+        addLog("🍾 Aria: Too rich! Going to party... 🥂", "#FCD34D");
+        aria.wealthUSD -= 60; 
+        moveAgents(); // バグっていても位置だけは更新
+        return; 
+    }
+
+    // 4. 経済ロジック (奪い合い)
     const actor = agents[Math.floor(Math.random() * agents.length)];
-    const profit = Math.floor(Math.random() * 40) + 10; // 10〜50ドル増える
-    actor.wealthUSD += profit;
+    const others = agents.filter(a => a.id !== actor.id);
+    const target = others[Math.floor(Math.random() * others.length)]; 
+    const good = GOODS[Math.floor(Math.random() * GOODS.length)]; 
 
-    addLog(`${actor.emoji} ${actor.name} gained $${profit} (Total: $${fmt(actor.wealthUSD)})`, "#15803D");
-    // 一旦、動作確認用にログを出します
-    console.log("Turn processed: " + st.turn);
-    addLog(`Turn ${st.turn}: 経済が動いています...`, "#aaa");
+    const amount = Math.floor(Math.random() * 40) + 10; 
 
-    // 画面更新関数の呼び出し
+    // 資産の移動
+    actor.wealthUSD += amount;
+    target.wealthUSD -= amount;
+
+    // ログ出力
+    addLog(`${actor.emoji} ${actor.name} bought ${good} from ${target.emoji} ${target.name}: +$${amount}`, "#15803D");
+    addLog(`   💸 ${target.name} is now $${fmt(target.wealthUSD)}`, "#DC2626");
+
+    // 5. 画面更新
     if (typeof moveAgents === 'function') moveAgents();
     if (typeof updateLB === 'function') updateLB();
     if (typeof updateMetrics === 'function') updateMetrics();

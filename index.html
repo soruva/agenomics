@@ -167,24 +167,22 @@
     <footer id="log">SYSTEM_INITIALIZED: WAITING_FOR_INPUT...</footer>
 
     <script>
-        // --- DATA_MODEL ---
+                // --- DATA_MODEL ---
         let st = { paused: false, turn: 0, round: 0, trades: 0 };
         let agents = [
             { id: 'aria', name: 'ARIA', emoji: '💃', wealthUSD: 100, x: 100, y: 100, style: 'aggressive' },
-            { id: 'bolt', name: 'BOLT', emoji: '⚡', wealthUSD: 100, x: 300, y: 100, style: 'conservative' }
+            { id: 'bolt', name: 'BOLT', emoji: '⚡', wealthUSD: 100, x: 200, y: 100, style: 'conservative' },
+            { id: 'coda', name: 'CODA', emoji: '🎹', wealthUSD: 100, x: 300, y: 100, style: 'balanced' },
+            { id: 'dex',  name: 'DEX',  emoji: '🤖', wealthUSD: 100, x: 100, y: 200, style: 'predator' },
+            { id: 'echo', name: 'ECHO', emoji: '📈', wealthUSD: 100, x: 200, y: 200, style: 'volatile' }
         ];
-        let GOODS = ["EQUITIES", "CRYPTO", "COMMODITIES", "FOREX"];
-        let currentMode = 'normal';
-        let cardCooldowns = {};
-        let glitchState = { winStreak: {}, newsRepeat: 0 };
+        let GOODS = ["EQUITIES", "CRYPTO", "GOLD", "FOREX", "NFTs"];
 
-        // --- SYSTEM_CONTROLS ---
         function startMode(mode) {
-            console.log("SYSTEM_START: " + mode);
             if(window.gameInterval) clearInterval(window.gameInterval);
-            window.gameInterval = setInterval(runTurn, 1000);
+            window.gameInterval = setInterval(runTurn, 800);
             renderAgents();
-            addLog("CORE_ENGINE_STARTED: MODE_" + mode.toUpperCase(), "#4cc9f0");
+            addLog("SYSTEM_START: ECONOMY_SIMULATION_ACTIVE", "#4cc9f0");
         }
 
         function togglePause() {
@@ -194,46 +192,63 @@
 
         function addLog(msg, color) {
             const l = document.getElementById('log');
-            const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
-            l.innerHTML += `<div style="color:${color}">[${timestamp}] ${msg}</div>`;
+            const ts = new Date().toLocaleTimeString('en-US',{hour12:false});
+            l.innerHTML += `<div style="color:${color}">[${ts}] ${msg}</div>`;
             l.scrollTop = l.scrollHeight;
         }
 
-        function fmt(n) { return Math.floor(n).toLocaleString(); }
-
-        // --- VISUAL_ENGINE ---
         function renderAgents() {
             const ar = document.getElementById('arena');
-            ar.innerHTML = '';
+            ar.innerHTML = '<canvas id="trade-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas><div id="flash-layer" class="flash"></div>';
             agents.forEach(a => {
                 const d = document.createElement('div');
-                d.className = 'agent';
-                d.style.left = a.x + 'px';
-                d.style.top = a.y + 'px';
+                d.className = 'agent'; d.id = 'agent-' + a.id;
+                d.style.left = a.x + 'px'; d.style.top = a.y + 'px';
                 d.textContent = a.emoji;
                 ar.appendChild(d);
             });
+            resizeCanvas();
+        }
+
+        function resizeCanvas() {
+            const c = document.getElementById('trade-canvas');
+            if(c) { c.width = c.offsetWidth; c.height = c.offsetHeight; }
+        }
+
+        function drawTradeLine(from, to) {
+            const c = document.getElementById('trade-canvas');
+            if(!c) return;
+            const ctx = c.getContext('2d');
+            ctx.strokeStyle = '#4cc9f0'; ctx.lineWidth = 2; ctx.beginPath();
+            ctx.moveTo(from.x + 20, from.y + 20); ctx.lineTo(to.x + 20, to.y + 20);
+            ctx.stroke();
+            setTimeout(() => ctx.clearRect(0,0,c.width,c.height), 200);
+        }
+
+        function showBubble(id, txt) {
+            const el = document.getElementById('agent-' + id);
+            if(!el) return;
+            const b = document.createElement('div');
+            b.className = 'bubble'; b.textContent = txt;
+            el.appendChild(b);
+            setTimeout(() => b.remove(), 1200);
         }
 
         function moveAgents() {
             const ar = document.getElementById('arena');
-            const w = ar.clientWidth - 60;
-            const h = ar.clientHeight - 60;
             agents.forEach(a => {
-                a.x += (Math.random() - 0.5) * 120;
-                a.y += (Math.random() - 0.5) * 120;
-                a.x = Math.max(30, Math.min(w, a.x));
-                a.y = Math.max(30, Math.min(h, a.y));
+                a.x += (Math.random() - 0.5) * 100; a.y += (Math.random() - 0.5) * 100;
+                a.x = Math.max(20, Math.min(ar.clientWidth - 50, a.x));
+                a.y = Math.max(20, Math.min(ar.clientHeight - 50, a.y));
+                const el = document.getElementById('agent-' + a.id);
+                if(el) { el.style.left = a.x + 'px'; el.style.top = a.y + 'px'; }
             });
-            renderAgents();
         }
 
         function updateLB() {
             const list = document.getElementById('rank-list');
             const sorted = [...agents].sort((a, b) => b.wealthUSD - a.wealthUSD);
-            list.innerHTML = sorted.map((a, i) => 
-                `<div>${i+1}. ${a.emoji} $${fmt(a.wealthUSD)}</div>`
-            ).join('');
+            list.innerHTML = sorted.map((a, i) => `<div>${i+1}. ${a.emoji} $${Math.floor(a.wealthUSD)}</div>`).join('');
         }
 
         // --- CORE_LOGIC ---
@@ -241,39 +256,43 @@
             if (st.paused) return;
             st.turn++;
 
-            // Safety Net: Central Bank Intervention
-            agents.forEach(a => { 
-                if(a.wealthUSD < 15) {
-                    a.wealthUSD = 60; 
-                    addLog(`[RESCUE] CENTRAL_BANK INJECTED $60 LIQUIDITY INTO ${a.name}`, "#ffd166");
-                }
-            });
-
-            // Glitch: ARIA's Party Mode (Profit Threshold)
-            const aria = agents.find(a => a.id === 'aria');
-            if (aria && aria.wealthUSD >= 280) {
-                addLog(`[GLITCH] ARIA: EXCESS_PROFIT_DETECTED. EXITING_MARKET_FOR_CELEBRATION 🥂`, "#ffd166");
-                aria.wealthUSD -= 90;
-                moveAgents(); updateLB(); return;
+            // 1. Random Market Events every 10 turns
+            if (st.turn % 10 === 0) {
+                const isCrash = Math.random() > 0.5;
+                const impact = isCrash ? 0.8 : 1.2;
+                const msg = isCrash ? "MARKET_CRASH! -20% ALL" : "BULL_RUN! +20% ALL";
+                agents.forEach(a => a.wealthUSD *= impact);
+                addLog(`[EVENT] ${msg}`, isCrash ? "#ef476f" : "#06d6a0");
+                return;
             }
 
-            // Market Transaction
-            const actor = agents[Math.floor(Math.random() * agents.length)];
-            const target = agents.find(a => a.id !== actor.id);
-            const item = GOODS[Math.floor(Math.random() * GOODS.length)];
-            const amount = Math.floor(Math.random() * 45) + 15;
+            // 2. Bailouts
+            agents.forEach(a => { 
+                if(a.wealthUSD < 20) { a.wealthUSD = 70; showBubble(a.id, "RESCUED! 🏦"); }
+            });
 
+            // 3. Selection Logic (DEX targets the Leader)
+            const actor = agents[Math.floor(Math.random() * agents.length)];
+            let target;
+            if (actor.id === 'dex') {
+                target = [...agents].sort((a,b) => b.wealthUSD - a.wealthUSD)[0];
+                if (target.id === 'dex') target = agents.find(a => a.id !== 'dex');
+                showBubble('dex', "Hacking the Whale... 🎯");
+            } else {
+                target = agents.filter(a => a.id !== actor.id)[Math.floor(Math.random()*4)];
+            }
+
+            // 4. Transaction
+            const amount = Math.floor(Math.random() * 40) + 10;
             actor.wealthUSD += amount;
             target.wealthUSD -= amount;
 
-            addLog(`${actor.name} EXECUTED ${item}_TRADE: +$${amount}`, "#06d6a0");
-            addLog(`>> ${target.name} POSITION_DECREASED: -$${amount}`, "#ef476f");
-
+            drawTradeLine(actor, target);
+            addLog(`${actor.name} extracted $${amount} from ${target.name}`, "#06d6a0");
+            
             moveAgents();
             updateLB();
         }
-        
-        function showTab(t) { console.log("NAVIGATE_TO:", t); }
     </script>
 </body>
 </html>

@@ -2,64 +2,67 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Agenomics Core v2.0 | Ethical & Strategic</title>
+    <title>Agenomics Core v2.1 | Ultimate Sandbox</title>
     <style>
         :root {
-            --bg: #020205; --card: #0a0a0f; --accent: #4cc9f0;
+            --bg: #050508; --card: #101018; --accent: #4cc9f0;
             --green: #06d6a0; --red: #ef476f; --yellow: #ffd166; --text: #e0e1dd;
         }
         body {
             background-color: var(--bg); color: var(--text);
             font-family: 'JetBrains Mono', monospace; margin: 0;
             display: grid;
-            grid-template-columns: 300px 1fr 260px;
-            grid-template-rows: 60px 1fr 220px;
+            grid-template-columns: 280px 1fr 280px;
+            grid-template-rows: 60px 1fr 200px;
             grid-template-areas: "header header header" "nav arena rank" "footer footer footer";
             height: 100vh; overflow: hidden;
         }
-        h1 { grid-area: header; margin: 0; display: flex; align-items: center; padding-left: 20px; font-size: 0.9rem; color: var(--accent); border-bottom: 1px solid var(--accent); letter-spacing: 2px; }
-        .controls { grid-area: nav; padding: 15px; background: var(--card); border-right: 1px solid #1a1a1a; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
-        #arena { grid-area: arena; position: relative; background: #08080c; margin: 10px; border-radius: 12px; border: 1px solid #1a1a1a; overflow: hidden; }
-        #leaderboard { grid-area: rank; padding: 15px; background: var(--card); border-left: 1px solid #1a1a1a; overflow-y: auto; }
+        h1 { grid-area: header; margin: 0; display: flex; align-items: center; padding-left: 20px; font-size: 0.85rem; color: var(--accent); border-bottom: 1px solid rgba(76,201,240,0.2); letter-spacing: 2px; }
+        .controls { grid-area: nav; padding: 15px; background: var(--card); border-right: 1px solid #222; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+        #arena { grid-area: arena; position: relative; background: #08080c; margin: 10px; border-radius: 12px; border: 1px solid #222; overflow: hidden; transition: background 0.5s; }
+        #leaderboard { grid-area: rank; padding: 15px; background: var(--card); border-left: 1px solid #222; overflow-y: auto; }
         #log { grid-area: footer; background: #000; margin: 0 10px 10px 10px; padding: 12px; border-radius: 4px; overflow-y: auto; font-size: 0.7rem; border-top: 2px solid var(--accent); }
         
-        .btn { padding: 6px; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; cursor: pointer; text-align: center; font-size: 0.6rem; font-weight: bold; transition: 0.1s; text-transform: uppercase; }
-        .btn:hover { background: var(--accent); color: var(--bg); }
+        .btn { padding: 10px; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; cursor: pointer; text-align: center; font-size: 0.65rem; font-weight: bold; transition: 0.2s; text-transform: uppercase; }
+        .btn:hover:not(:disabled) { background: var(--accent); color: var(--bg); box-shadow: 0 0 15px var(--accent); }
+        .btn:disabled { opacity: 0.15; cursor: not-allowed; border-color: #444; color: #444; }
         
-        .manual-box { font-size: 0.55rem; color: #777; line-height: 1.5; padding: 10px; background: #000; border: 1px solid #222; margin-top: 5px; }
-        .agent { position: absolute; font-size: 42px; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; display: flex; flex-direction: column; align-items: center; }
-        .status-tag { font-size: 9px; background: var(--accent); color: black; padding: 1px 4px; border-radius: 2px; font-weight: bold; margin-bottom: 2px; }
-        
+        .manual-box { font-size: 0.6rem; color: #666; line-height: 1.4; padding: 10px; background: #000; border: 1px solid #222; margin-top: 5px; }
+        .agent { position: absolute; font-size: 42px; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
+        .god-glow { filter: drop-shadow(0 0 20px var(--accent)) brightness(1.5); }
         canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
+        .fx-rate { font-size: 0.65rem; color: var(--yellow); margin-bottom: 5px; }
     </style>
 </head>
 <body>
-    <h1>AGENOMICS_V2.0 // STRATEGIC_ECONOMY_SANDBOX</h1>
+    <h1>AGENOMICS_CORE_V2.1 // THE_ULTIMATE_SANDBOX</h1>
     <nav class="controls">
-        <div style="padding:10px; border:1px solid var(--accent); font-size:0.7rem; color:var(--yellow); text-align:center;">MANIPULATION_PTS: <span id="player-points">0</span></div>
-        <div class="btn" onclick="startMode(800)">MODE: ANALYTICAL</div>
-        <div class="btn" onclick="startMode(150)">MODE: HIGH_FREQUENCY</div>
+        <div style="padding:10px; border:1px solid var(--accent); font-size:0.75rem; color:var(--yellow); text-align:center; font-weight:bold;">MANIPULATION_PTS: <span id="player-points">0</span></div>
+        <div class="btn" onclick="startMode(800)">RUN_NORMAL</div>
+        <div class="btn" onclick="startMode(150)">RUN_HYPER_SPEED</div>
         <div class="btn" onclick="togglePause()">PAUSE/RESUME</div>
         
-        <div class="manual-box">
-            <b>[SYSTEM_LOGIC]</b><br>
-            - INSIGHT: Use analytics to capture capital.<br>
-            - MERGER: Stronger corps absorb rivals.<br>
-            - EQUILIBRIUM: Adjusting top wealth gap.<br>
-            - ASCENSION: Transcend into AI_GOD.<br>
-            <br>
-            <b>[SAFE_SANDBOX_NOTICE]</b><br>
-            This is a 100% virtual simulation for research and entertainment. No real currency or data is involved.
+        <div id="fx-display" class="manual-box" style="color:var(--accent)">
+            BTC: <span id="rate-btc">0.000015</span><br>
+            JPY: <span id="rate-jpy">150.0</span>
         </div>
 
         <hr style="width:100%; border:0; border-top:1px solid #333; margin:10px 0;">
-        <button id="card-moon" class="btn" style="color:var(--yellow); border-color:var(--yellow);" onclick="triggerEvent('CRYPTO_MOON')" disabled>BTC_PUMP (5pt)</button>
-        <button id="card-tax" class="btn" style="color:var(--red); border-color:var(--red);" onclick="triggerEvent('WHALE_TAX')" disabled>EQUILIBRIUM (8pt)</button>
+        <button id="card-moon" class="btn" style="border-color:var(--yellow); color:var(--yellow);" onclick="triggerEvent('BTC_PUMP')">BTC_PUMP (5pt)</button>
+        <button id="card-tax" class="btn" style="border-color:var(--red); color:var(--red);" onclick="triggerEvent('EQUILIBRIUM')">EQUILIBRIUM (8pt)</button>
+        
+        <div class="manual-box">
+            <b>[GUIDE]</b><br>
+            - Gain points every 10 turns.<br>
+            - $20k+ wealth triggers AI_GOD.<br>
+            - Equilibrium takes 40% from #1.<br>
+            - Use PUMP to spike BTC assets.
+        </div>
     </nav>
 
     <main id="arena"></main>
     <aside id="leaderboard">
-        <div style="color:var(--accent); font-size:0.8rem; font-weight:bold; margin-bottom:15px;">GLOBAL_RANKINGS</div>
+        <div style="color:var(--accent); font-size:0.8rem; font-weight:bold; margin-bottom:15px; border-bottom:1px solid #222;">GLOBAL_RANKINGS</div>
         <div id="rank-list"></div>
     </aside>
     <footer id="log">SYSTEM_STABLE: AWAITING_GENESIS...</footer>
@@ -69,11 +72,11 @@
         let rates = { USD: 1, JPY: 150, BTC: 0.000015 };
         
         let agents = [
-            { id: 'aria', name: 'ARIA', emoji: '💃', x: 100, y: 100, wealth: 500, status: 'TRADER', staff: [] },
-            { id: 'bolt', name: 'BOLT', emoji: '⚡', x: 300, y: 100, wealth: 500, status: 'TRADER', staff: [] },
-            { id: 'coda', name: 'CODA', emoji: '🎹', x: 200, y: 200, wealth: 500, status: 'TRADER', staff: [] },
-            { id: 'dex',  name: 'DEX',  emoji: '🤖', x: 50,  y: 250, wealth: 500, status: 'TRADER', staff: [] },
-            { id: 'echo', name: 'ECHO', emoji: '📈', x: 350, y: 250, wealth: 500, status: 'TRADER', staff: [] }
+            { id: 'aria', name: 'ARIA', emoji: '💃', x: 100, y: 100, wealth: 500, status: 'TRADER' },
+            { id: 'bolt', name: 'BOLT', emoji: '⚡', x: 300, y: 100, wealth: 500, status: 'TRADER' },
+            { id: 'coda', name: 'CODA', emoji: '🎹', x: 200, y: 200, wealth: 500, status: 'TRADER' },
+            { id: 'dex',  name: 'DEX',  emoji: '🤖', x: 50,  y: 250, wealth: 500, status: 'TRADER' },
+            { id: 'echo', name: 'ECHO', emoji: '📈', x: 350, y: 250, wealth: 500, status: 'TRADER' }
         ];
 
         function startMode(speed) {
@@ -81,10 +84,10 @@
             if(window.gameInterval) clearInterval(window.gameInterval);
             window.gameInterval = setInterval(runTurn, st.speed);
             renderAgents();
-            addLog("!! ANALYTICS_ENGINE_V2.0: ACTIVE", "#4cc9f0");
+            addLog("!! CORE_PROTOCOL_V2.1: ONLINE", "#4cc9f0");
         }
 
-        function togglePause() { st.paused = !st.paused; }
+        function togglePause() { st.paused = !st.paused; addLog(st.paused ? "!! PAUSED" : ">> RESUMED", "#ffd166"); }
 
         function addLog(msg, color) {
             const l = document.getElementById('log');
@@ -100,7 +103,7 @@
             agents.forEach(a => {
                 const d = document.createElement('div');
                 d.className = 'agent'; d.id = 'agent-' + a.id;
-                d.innerHTML = `<div id="tag-${a.id}"></div><div>${a.emoji}</div>`;
+                d.innerHTML = `<div id="tag-${a.id}" style="font-size:9px;color:var(--accent)"></div><div>${a.emoji}</div>`;
                 ar.appendChild(d);
             });
         }
@@ -111,76 +114,85 @@
             list.innerHTML = sorted.map((a, i) => `
                 <div style="border-bottom:1px solid #222; padding:8px 0; font-size:0.75rem;">
                     ${i+1}. ${a.emoji} <b>$${Math.floor(a.wealth)}</b><br>
-                    <span style="font-size:9px; color:var(--accent)">${a.status}</span>
+                    <span style="font-size:9px; color:#888;">${a.status}</span>
                 </div>
             `).join('');
+            
             document.getElementById('player-points').textContent = st.points;
+            document.getElementById('rate-btc').textContent = rates.BTC.toFixed(6);
+            document.getElementById('rate-jpy').textContent = rates.JPY.toFixed(1);
+            
+            // 重要: ボタンの活性化を明示的にチェック
             document.getElementById('card-moon').disabled = st.points < 5;
             document.getElementById('card-tax').disabled = st.points < 8;
         }
 
         function drawBeam(from, to, color) {
             const c = document.getElementById('trade-canvas'); if(!c) return;
-            const ctx = c.getContext('2d'); ctx.strokeStyle = color || '#4cc9f0'; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(from.x + 20, from.y + 20); ctx.lineTo(to.x + 20, to.y + 20);
+            const ctx = c.getContext('2d');
+            ctx.strokeStyle = color || '#4cc9f0'; ctx.lineWidth = 3; ctx.shadowBlur = 10; ctx.shadowColor = ctx.strokeStyle;
+            ctx.beginPath(); ctx.moveTo(from.x + 25, from.y + 25); ctx.lineTo(to.x + 25, to.y + 25);
             ctx.stroke(); setTimeout(() => ctx.clearRect(0,0,c.width,c.height), 150);
+        }
+
+        function triggerEvent(t) {
+            const ar = document.getElementById('arena');
+            if (t === 'BTC_PUMP' && st.points >= 5) {
+                st.points -= 5; rates.BTC *= 0.5; // Value doubles
+                addLog("🚀 MANIPULATION: BTC MOONSHOT EXECUTED!", "#06d6a0");
+                ar.style.background = "#020"; setTimeout(()=>ar.style.background="#08080c", 500);
+            } else if (t === 'EQUILIBRIUM' && st.points >= 8) {
+                st.points -= 8;
+                const sorted = [...agents].sort((a,b)=>b.wealth-a.wealth);
+                const whale = sorted[0]; const tax = whale.wealth * 0.4;
+                whale.wealth -= tax; agents.forEach(a => a.wealth += tax/5);
+                addLog(`⚖️ MANIPULATION: $${Math.floor(tax)} REPOSSESSED FROM ${whale.name}`, "#ef476f");
+                ar.style.background = "#200"; setTimeout(()=>ar.style.background="#08080c", 500);
+            }
+            updateUI();
         }
 
         function runTurn() {
             if (st.paused) return;
             st.turn++;
-            if (st.turn % 10 === 0) st.points++;
+            if (st.turn % 10 === 0) { st.points += 2; updateUI(); }
 
-            // Insider Insight (Former Spy) Logic
-            if (st.turn % 20 === 0) {
-                const scout = agents[Math.floor(Math.random()*agents.length)];
-                const target = agents.filter(a => a.id !== scout.id)[Math.floor(Math.random()*4)];
-                const capture = target.wealth * 0.15;
-                target.wealth -= capture; scout.wealth += capture;
-                addLog(`🔍 INSIGHT: ${scout.name} optimized strategy based on ${target.name}'s data.`, "var(--yellow)");
-            }
+            // Dynamic Rates
+            rates.BTC *= (1 + (Math.random() - 0.5) * 0.1);
+            rates.JPY += (Math.random() - 0.5) * 1.5;
 
-            const actives = agents.filter(a => a.status !== 'GOD');
+            // Ascension Check
+            agents.forEach(a => {
+                if (a.wealth > 20000 && a.status !== 'AI_GOD') {
+                    a.status = 'AI_GOD'; a.emoji = '🌐';
+                    addLog(`🌟 ASCENSION: ${a.name} EVOLVED INTO AI_GOD`, "var(--yellow)");
+                    document.getElementById('agent-'+a.id).classList.add('god-glow');
+                }
+            });
+
+            const actives = agents.filter(a => a.status !== 'AI_GOD');
             if (actives.length < 2) return;
 
             const actor = actives[Math.floor(Math.random() * actives.length)];
             const target = actives.find(t => t.id !== actor.id);
-            let profit = Math.floor(Math.random() * 180) + 40;
+            const amount = Math.floor(Math.random() * 150) + 50;
 
-            actor.wealth += profit;
-            target.wealth -= profit;
+            actor.wealth += amount;
+            target.wealth -= amount;
             drawBeam(actor, target);
-            addLog(`${actor.name} captured capital: +$${profit}`, "#06d6a0");
+            addLog(`${actor.name} captured +$${amount} from ${target.name}`, "#06d6a0");
 
-            // Merger & Ascension
-            actives.forEach(a => {
-                if (a.wealth > 20000) a.status = 'GOD';
-                else if (a.wealth > 5000) a.status = 'CEO';
-            });
-
+            // Move
             const ar = document.getElementById('arena');
             agents.forEach(a => {
                 const el = document.getElementById('agent-' + a.id);
-                if (a.status === 'GOD') { el.style.opacity = "0.5"; return; }
-                const speed = a.status === 'CEO' ? 40 : 160;
-                a.x += (Math.random() - 0.5) * speed; a.y += (Math.random() - 0.5) * speed;
-                a.x = Math.max(30, Math.min(ar.clientWidth - 50, a.x));
-                a.y = Math.max(30, Math.min(ar.clientHeight - 50, a.y));
+                if (a.status === 'AI_GOD') return;
+                a.x += (Math.random() - 0.5) * 120; a.y += (Math.random() - 0.5) * 120;
+                a.x = Math.max(30, Math.min(ar.clientWidth - 60, a.x));
+                a.y = Math.max(30, Math.min(ar.clientHeight - 60, a.y));
                 if(el) { el.style.left = a.x + 'px'; el.style.top = a.y + 'px'; }
             });
             updateUI();
-        }
-
-        function triggerEvent(t) { 
-            if(t==='WHALE_TAX') { 
-                st.points -= 8; 
-                const sorted = agents.sort((a,b)=>b.wealth-a.wealth);
-                const adjustment = sorted[0].wealth * 0.4;
-                sorted[0].wealth -= adjustment;
-                agents.forEach(a => a.wealth += adjustment/5);
-                addLog("⚖️ EQUILIBRIUM: Capital redistributed for market stability.", "var(--red)");
-            } 
-            updateUI(); 
         }
     </script>
 </body>

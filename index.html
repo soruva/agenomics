@@ -665,6 +665,31 @@ function showBubble(agent,msg,color,isGlitch){
   setTimeout(()=>b.remove(),3200);
 }
 
+// --- 最小限の不足データ定義 ---
+let glitchState = { winStreak: {}, newsRepeat: 0, prevNewsId: null };
+let glitchCooldown = {};
+let currentNews = null; // ニュース機能が未実装ならnullでOK
+
+const GLITCHES = {
+  aria: {
+    check: (a) => a.wealthUSD > 400, // 資産が400を超えたら
+    msgs: ["Going out to celebrate... 🥂"],
+    color: "#FCD34D",
+    skipTurn: true
+  },
+  bolt: {
+    check: () => currentMode === 'chaos', // カオスモードなら
+    msgs: ["TOO CHAOTIC. Selling everything. 😱"],
+    color: "#EF4444",
+    onTrigger: (a) => { a.wealthUSD *= 0.75; }
+  },
+  // 他のエージェントも同様に定義...
+};
+
+// --- ヘルパー関数（もしなければ） ---
+function fmt(n) { return Math.floor(n).toLocaleString(); }
+function addLog(m, c) { console.log(`%c${m}`, `color:${c}`); } // 簡易ログ
+  
 function runTurn(){
   if(st.paused)return;
   st.turn++;

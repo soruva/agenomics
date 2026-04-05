@@ -2,89 +2,91 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Agenomics Core v1.5 | Luxury & Dreams</title>
+    <title>Agenomics Core v1.6 | Addiction & Empire</title>
     <style>
         :root {
-            --bg: #050508; --card: #12121a; --accent: #4cc9f0;
+            --bg: #030305; --card: #0d0d14; --accent: #4cc9f0;
             --green: #06d6a0; --red: #ef476f; --yellow: #ffd166; --text: #e0e1dd;
         }
         body {
             background-color: var(--bg); color: var(--text);
             font-family: 'JetBrains Mono', monospace; margin: 0;
             display: grid;
-            grid-template-columns: 260px 1fr 260px;
+            grid-template-columns: 280px 1fr 280px;
             grid-template-rows: 60px 1fr 220px;
             grid-template-areas: "header header header" "nav arena rank" "footer footer footer";
             height: 100vh; overflow: hidden;
         }
-        h1 { grid-area: header; margin: 0; display: flex; align-items: center; padding-left: 20px; font-size: 0.9rem; color: var(--accent); border-bottom: 1px solid var(--accent); letter-spacing: 2px; }
-        .controls { grid-area: nav; padding: 15px; background: var(--card); border-right: 1px solid rgba(76,201,240,0.1); display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
-        #arena { grid-area: arena; position: relative; background: #08080c; margin: 10px; border-radius: 4px; border: 1px solid rgba(76,201,240,0.1); overflow: hidden; }
-        #leaderboard { grid-area: rank; padding: 20px; background: var(--card); border-left: 1px solid rgba(76, 201, 240, 0.1); overflow-y: auto; }
-        #log { grid-area: footer; background: #000; margin: 0 10px 10px 10px; padding: 12px; border-radius: 2px; overflow-y: auto; font-size: 0.7rem; border-top: 1px solid var(--accent); }
+        h1 { grid-area: header; margin: 0; display: flex; align-items: center; padding-left: 20px; font-size: 0.9rem; color: var(--accent); border-bottom: 1px solid var(--accent); letter-spacing: 2px; text-shadow: 0 0 10px var(--accent); }
+        .controls { grid-area: nav; padding: 15px; background: var(--card); border-right: 1px solid #222; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+        #arena { grid-area: arena; position: relative; background: radial-gradient(circle, #0c0c14 0%, #030305 100%); margin: 10px; border-radius: 8px; border: 1px solid #222; overflow: hidden; }
+        #leaderboard { grid-area: rank; padding: 15px; background: var(--card); border-left: 1px solid #222; overflow-y: auto; }
+        #log { grid-area: footer; background: #000; margin: 0 10px 10px 10px; padding: 12px; border-radius: 4px; overflow-y: auto; font-size: 0.7rem; border-top: 2px solid var(--accent); }
         
-        .btn { padding: 8px; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 2px; cursor: pointer; text-align: center; font-size: 0.65rem; font-weight: bold; transition: 0.1s; text-transform: uppercase; }
-        .btn:hover { background: var(--accent); color: var(--bg); }
-        .btn:disabled { opacity: 0.2; cursor: not-allowed; }
+        .btn { padding: 10px; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; cursor: pointer; text-align: center; font-size: 0.65rem; font-weight: bold; transition: 0.1s; text-transform: uppercase; }
+        .btn:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 15px var(--accent); }
+        .btn.gold { border-color: var(--yellow); color: var(--yellow); }
+        .btn:disabled { opacity: 0.1; cursor: not-allowed; }
 
-        .agent { position: absolute; font-size: 38px; transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); user-select: none; z-index: 10; display: flex; flex-direction: column; align-items: center; }
-        .inventory { display: flex; gap: 2px; font-size: 14px; margin-top: -5px; }
-        .bubble { position: absolute; background: var(--card); border: 1px solid var(--accent); padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; bottom: 65px; left: 50%; transform: translateX(-50%); white-space: nowrap; z-index: 20; color: white; box-shadow: 0 0 15px var(--accent); font-weight: bold; }
+        .agent { position: absolute; font-size: 42px; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); user-select: none; z-index: 10; display: flex; flex-direction: column; align-items: center; }
+        .agent-label { font-size: 10px; background: rgba(0,0,0,0.7); padding: 1px 4px; border-radius: 3px; margin-bottom: 2px; white-space: nowrap; }
+        .inventory { display: flex; gap: 2px; font-size: 12px; margin-top: -2px; }
+        .bubble { position: absolute; background: white; color: black; padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; bottom: 75px; left: 50%; transform: translateX(-50%); white-space: nowrap; z-index: 20; font-weight: bold; box-shadow: 0 0 20px white; }
+        
         canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
-        .rank-item { border-bottom: 1px solid #222; padding: 8px 0; font-size: 0.75rem; }
+        .rank-item { border-bottom: 1px solid #222; padding: 10px 0; font-size: 0.75rem; transition: 0.3s; }
+        .rank-item.highlight { background: rgba(76, 201, 240, 0.1); }
     </style>
 </head>
 <body>
-    <h1>AGENOMICS_V1.5 // LUXURY_DREAMS_ENGINE</h1>
+    <h1>AGENOMICS_V1.6 // ADDICTION_PROTOCOL_ACTIVE</h1>
     <nav class="controls">
-        <div style="padding:8px; border:1px solid #333; font-size:0.65rem; color:var(--yellow);">POINTS: <span id="player-points">0</span></div>
-        <div class="btn" onclick="startMode()">RUN_SIMULATION</div>
+        <div style="padding:10px; border:1px solid var(--accent); font-size:0.7rem; color:var(--yellow); text-align:center;">PTS: <span id="player-points">0</span></div>
+        <div class="btn" onclick="startMode()">RUN_ADDICTION</div>
         <div class="btn" onclick="togglePause()">PAUSE/RESUME</div>
         
-        <div id="fx-panel" style="margin-top:10px;">
-            <div style="font-size:0.6rem; color:var(--accent); margin-bottom:5px;">GLOBAL_FX</div>
+        <div id="fx-panel" style="margin-top:10px; padding:10px; background:#000; border-radius:4px;">
+            <div style="font-size:0.6rem; color:var(--accent); margin-bottom:5px;">FX_WATCH</div>
             <div id="fx-rates"></div>
         </div>
 
         <hr style="width:100%; border:0; border-top:1px solid #333; margin:10px 0;">
-        <button id="card-moon" class="btn" style="color:var(--yellow); border-color:var(--yellow);" onclick="triggerEvent('CRYPTO_MOON')" disabled>CRYPTO_MOON (5pt)</button>
+        <button id="card-moon" class="btn gold" onclick="triggerEvent('CRYPTO_MOON')" disabled>CRYPTO_MOON (5pt)</button>
+        <button id="card-casino" class="btn gold" onclick="triggerEvent('CASINO')" disabled>FORCE_CASINO (7pt)</button>
         <button id="card-tax" class="btn" style="color:var(--red); border-color:var(--red);" onclick="triggerEvent('WHALE_TAX')" disabled>WHALE_TAX (8pt)</button>
     </nav>
 
     <main id="arena"></main>
     <aside id="leaderboard">
-        <div style="color:var(--accent); font-size:0.8rem; font-weight:bold; margin-bottom:15px; border-bottom:1px solid #333;">TOP_ELITES</div>
+        <div style="color:var(--accent); font-size:0.8rem; font-weight:bold; margin-bottom:15px;">MARKET_EMPIRE</div>
         <div id="rank-list"></div>
     </aside>
-    <footer id="log">LIFESTYLE_ENGINE_INITIALIZED...</footer>
+    <footer id="log">SYSTEM_STABLE: AWAITING_CHAOS...</footer>
 
     <script>
         let st = { paused: false, turn: 0, points: 0 };
-        let rates = { USD: 1, JPY: 150, EUR: 0.92, BTC: 0.000015, GOLD: 0.00045 };
-        let prevRates = {...rates};
+        let rates = { USD: 1, JPY: 150, BTC: 0.000015 };
         
-        const DREAMS = [
-            { name: "Coffee", cost: 50, emoji: "☕" },
-            { name: "Watch", cost: 200, emoji: "⌚" },
-            { name: "Suit", cost: 500, emoji: "👔" },
-            { name: "Car", cost: 1500, emoji: "🏎️" },
-            { name: "Mansion", cost: 5000, emoji: "🏰" },
-            { name: "Space", cost: 15000, emoji: "🚀" }
+        const ITEMS = [
+            { name: "Coffee", cost: 100, emoji: "☕", buff: "awake" },
+            { name: "Supercar", cost: 2000, emoji: "🏎️", buff: "speed" },
+            { name: "Mansion", cost: 8000, emoji: "🏰", buff: "prestige" },
+            { name: "Rocket", cost: 25000, emoji: "🚀", buff: "god" }
         ];
 
         let agents = [
-            { id: 'aria', name: 'ARIA', emoji: '💃', x: 100, y: 100, wallet: { USD: 150 }, items: [] },
-            { id: 'bolt', name: 'BOLT', emoji: '⚡', x: 300, y: 100, wallet: { USD: 150 }, items: [] },
-            { id: 'coda', name: 'CODA', emoji: '🎹', x: 200, y: 200, wallet: { USD: 150 }, items: [] },
-            { id: 'dex',  name: 'DEX',  emoji: '🤖', x: 50,  y: 250, wallet: { USD: 150 }, items: [] },
-            { id: 'echo', name: 'ECHO', emoji: '📈', x: 350, y: 250, wallet: { USD: 150 }, items: [] }
+            { id: 'aria', name: 'ARIA', emoji: '💃', x: 100, y: 100, wealth: 150, items: [], status: "" },
+            { id: 'bolt', name: 'BOLT', emoji: '⚡', x: 300, y: 100, wealth: 150, items: [], status: "" },
+            { id: 'coda', name: 'CODA', emoji: '🎹', x: 200, y: 200, wealth: 150, items: [], status: "" },
+            { id: 'dex',  name: 'DEX',  emoji: '🤖', x: 50,  y: 250, wealth: 150, items: [], status: "" },
+            { id: 'echo', name: 'ECHO', emoji: '📈', x: 350, y: 250, wealth: 150, items: [], status: "" }
         ];
 
         function startMode() {
             if(window.gameInterval) clearInterval(window.gameInterval);
-            window.gameInterval = setInterval(runTurn, 800);
+            window.gameInterval = setInterval(runTurn, 700);
             renderAgents();
-            addLog("!! PROTOCOL_1.5: DREAMS_AND_LUXURY_ENABLED", "#4cc9f0");
+            addLog("!! ADDICTION_SYSTEM_V1.6_STARTED", "#4cc9f0");
         }
 
         function togglePause() { st.paused = !st.paused; }
@@ -103,93 +105,107 @@
             agents.forEach(a => {
                 const d = document.createElement('div');
                 d.className = 'agent'; d.id = 'agent-' + a.id;
-                d.style.left = a.x + 'px'; d.style.top = a.y + 'px';
-                d.innerHTML = `<div>${a.emoji}</div><div class="inventory" id="inv-${a.id}"></div>`;
+                d.innerHTML = `<div class="agent-label" id="label-${a.id}">POOR ${a.name}</div><div>${a.emoji}</div><div class="inventory" id="inv-${a.id}"></div>`;
                 ar.appendChild(d);
             });
         }
 
-        function drawNeonBeam(from, to) {
-            const c = document.getElementById('trade-canvas'); if(!c) return;
-            const ctx = c.getContext('2d'); ctx.strokeStyle = '#4cc9f0'; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(from.x + 20, from.y + 20); ctx.lineTo(to.x + 20, to.y + 20);
-            ctx.stroke(); setTimeout(() => ctx.clearRect(0,0,c.width,c.height), 150);
-        }
-
-        function getWealthUSD(agent) {
-            return Object.keys(agent.wallet).reduce((total, cur) => total + (agent.wallet[cur] / rates[cur]), 0);
-        }
-
-        function showBubble(id, txt) {
-            const el = document.getElementById('agent-' + id); if(!el) return;
-            const b = document.createElement('div'); b.className = 'bubble'; b.textContent = txt;
-            el.appendChild(b); setTimeout(() => b.remove(), 1500);
+        function getTitle(w) {
+            if (w > 20000) return "GOD_OF_MARKET";
+            if (w > 5000) return "TYCOON";
+            if (w > 1000) return "MILLIONAIRE";
+            if (w < 50) return "BANKRUPT";
+            return "TRADER";
         }
 
         function updateUI() {
             const list = document.getElementById('rank-list');
-            const sorted = [...agents].sort((a, b) => getWealthUSD(b) - getWealthUSD(a));
+            const sorted = [...agents].sort((a, b) => b.wealth - a.wealth);
             list.innerHTML = sorted.map((a, i) => `
                 <div class="rank-item">
-                    ${i+1}. ${a.emoji} <b>$${Math.floor(getWealthUSD(a))}</b><br>
-                    <span style="font-size:10px; color:#888;">ITEMS: ${a.items.join('') || 'None'}</span>
+                    ${i+1}. ${a.emoji} <b>$${Math.floor(a.wealth)}</b> [${getTitle(a.wealth)}]<br>
+                    <span style="font-size:10px; color:var(--yellow);">${a.items.join('')}</span>
                 </div>
             `).join('');
             
-            const fx = document.getElementById('fx-rates');
-            fx.innerHTML = Object.keys(rates).filter(c => c !== 'USD').map(c => `
-                <div style="font-size:10px; display:flex; justify-content:space-between;">
-                    <span>${c}</span><span>${rates[c].toFixed(c==='BTC'?6:2)}</span>
-                </div>`).join('');
-            
             document.getElementById('player-points').textContent = st.points;
             document.getElementById('card-moon').disabled = st.points < 5;
+            document.getElementById('card-casino').disabled = st.points < 7;
             document.getElementById('card-tax').disabled = st.points < 8;
+        }
+
+        function drawNeonBeam(from, to, color) {
+            const c = document.getElementById('trade-canvas');
+            const ctx = c.getContext('2d'); ctx.strokeStyle = color || '#4cc9f0'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(from.x + 20, from.y + 20); ctx.lineTo(to.x + 20, to.y + 20);
+            ctx.stroke(); setTimeout(() => ctx.clearRect(0,0,c.width,c.height), 150);
+        }
+
+        function showBubble(id, txt) {
+            const el = document.getElementById('agent-' + id);
+            const b = document.createElement('div'); b.className = 'bubble'; b.textContent = txt;
+            el.appendChild(b); setTimeout(() => b.remove(), 1200);
+        }
+
+        function triggerEvent(type) {
+            const ar = document.getElementById('arena');
+            if(type === 'CASINO') {
+                st.points -= 7;
+                addLog("🎰 ALL_IN! FORCED CASINO EVENT ACTIVATED", "#ffd166");
+                agents.forEach(a => {
+                    const win = Math.random() > 0.5;
+                    if(win) { a.wealth *= 2; showBubble(a.id, "JACKPOT! 🎰"); }
+                    else { a.wealth *= 0.2; showBubble(a.id, "BUSTED... 💀"); }
+                });
+                ar.style.background = "#320"; setTimeout(()=>ar.style.background="transparent", 500);
+            }
+            updateUI();
         }
 
         function runTurn() {
             if (st.paused) return;
             st.turn++;
-            prevRates = {...rates};
-            rates.BTC *= (1 + (Math.random() - 0.5) * 0.15);
+            rates.BTC *= (1 + (Math.random() - 0.5) * 0.2);
             if (st.turn % 8 === 0) st.points++;
 
             // Trade
             const actor = agents[Math.floor(Math.random() * agents.length)];
             const target = agents.filter(a => a.id !== actor.id)[Math.floor(Math.random()*4)];
-            const amount = Math.floor(Math.random() * 80) + 20;
+            
+            let amount = Math.floor(Math.random() * 100) + 20;
+            if(actor.status === "revenge") { amount *= 2; actor.status = ""; }
 
-            actor.wallet.USD = (actor.wallet.USD || 0) + amount;
-            target.wallet.USD = (target.wallet.USD || 0) - amount;
+            actor.wealth += amount;
+            target.wealth -= amount;
+            target.status = "revenge"; // Revenge mode for the loser
 
-            drawNeonBeam(actor, target);
-            addLog(`${actor.name} extracted $${amount} from ${target.name}`, "#06d6a0");
+            drawNeonBeam(actor, target, (amount > 100 ? "#ffd166" : "#4cc9f0"));
+            addLog(`${actor.name} drained $${amount} from ${target.name}`, (amount > 100 ? "#ffd166" : "#06d6a0"));
 
-            // Luxury Check
-            const wealth = getWealthUSD(actor);
-            const nextDream = DREAMS.find(d => wealth >= d.cost && !actor.items.includes(d.emoji));
-            if (nextDream) {
-                actor.items.push(nextDream.emoji);
-                actor.wallet.USD -= nextDream.cost * 0.5; // Cost of purchase
-                showBubble(actor.id, `Bought ${nextDream.name}! ${nextDream.emoji}`);
-                addLog(`💎 LUXURY: ${actor.name} purchased ${nextDream.name.toUpperCase()}`, "#ffd166");
+            // Auto-Buy & Upgrade
+            const nextItem = ITEMS.find(i => actor.wealth >= i.cost && !actor.items.includes(i.emoji));
+            if (nextItem) {
+                actor.items.push(nextItem.emoji);
+                actor.wealth -= nextItem.cost * 0.7;
+                showBubble(actor.id, `Got ${nextItem.name}! ${nextItem.emoji}`);
                 document.getElementById(`inv-${actor.id}`).innerHTML = actor.items.join('');
             }
 
-            // Movement
+            // Update Titles & Position
             const ar = document.getElementById('arena');
             agents.forEach(a => {
-                a.x += (Math.random() - 0.5) * 120; a.y += (Math.random() - 0.5) * 120;
-                a.x = Math.max(20, Math.min(ar.clientWidth - 50, a.x));
-                a.y = Math.max(20, Math.min(ar.clientHeight - 50, a.y));
+                const label = document.getElementById(`label-${a.id}`);
+                label.textContent = `${getTitle(a.wealth)} ${a.name}`;
+                label.style.color = a.wealth > 1000 ? "#ffd166" : "#4cc9f0";
+
+                const speed = a.items.includes("🏎️") ? 180 : 120;
+                a.x += (Math.random() - 0.5) * speed; a.y += (Math.random() - 0.5) * speed;
+                a.x = Math.max(30, Math.min(ar.clientWidth - 50, a.x));
+                a.y = Math.max(30, Math.min(ar.clientHeight - 50, a.y));
                 const el = document.getElementById('agent-' + a.id);
                 if(el) { el.style.left = a.x + 'px'; el.style.top = a.y + 'px'; }
+                if(a.wealth < 10) { a.wealth = 50; addLog(`🏦 BAILOUT for ${a.name}`, "#ffd166"); }
             });
-            updateUI();
-        }
-
-        function triggerEvent(type) {
-            if(type==='CRYPTO_MOON') { rates.BTC /= 5; st.points -= 5; addLog("🚀 BTC_MOON_SHOT!", "#06d6a0"); }
             updateUI();
         }
     </script>

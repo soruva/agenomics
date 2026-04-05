@@ -41,6 +41,13 @@
         function runTurn() {
     if (st.paused) return;
     st.turn++;
+        // --- 1. Ariaのバグ判定 (祝杯モード) ---
+    const aria = agents.find(a => a.id === 'aria');
+    if (aria && aria.wealthUSD >= 200) { // 資産が200を超えたら
+        addLog("🍾 Aria: Going out to celebrate... 🥂", "#FCD34D");
+        aria.wealthUSD -= 50; // お祝い代で少し減る
+        return; // このターンは取引せず終了（休み）
+    }        
     
     // エージェントの状態を更新
     glitchState.agents = agents;

@@ -41,13 +41,34 @@
         function runTurn() {
     if (st.paused) return;
     st.turn++;
-        // --- 1. Ariaのバグ判定 (祝杯モード) ---
+
+    // --- 1. Ariaのバグ判定 (祝杯モード) ---
     const aria = agents.find(a => a.id === 'aria');
-    if (aria && aria.wealthUSD >= 200) { // 資産が200を超えたら
-        addLog("🍾 Aria: Going out to celebrate... 🥂", "#FCD34D");
-        aria.wealthUSD -= 50; // お祝い代で少し減る
-        return; // このターンは取引せず終了（休み）
-    }        
+    if (aria && aria.wealthUSD >= 200) {
+        addLog("🍾 Aria: Too rich! Going to party... 🥂", "#FCD34D");
+        aria.wealthUSD -= 60; // 豪遊して市場からお金が消える
+        return;
+    }
+
+    // --- 2. 経済ロジック (奪い合いとモノの介在) ---
+    const actor = agents[Math.floor(Math.random() * agents.length)];
+    const others = agents.filter(a => a.id !== actor.id);
+    const target = others[Math.floor(Math.random() * others.length)]; // 相手を選ぶ
+    const good = GOODS[Math.floor(Math.random() * GOODS.length)]; // 何を取引するか
+
+    const amount = Math.floor(Math.random() * 40) + 10; // 取引額 ($10〜50)
+
+    // 資産の移動（奪い合い）
+    actor.wealthUSD += amount;
+    target.wealthUSD -= amount;
+
+    // 経済を回している感のあるログ
+    addLog(`${actor.emoji} ${actor.name} bought ${good} from ${target.emoji} ${target.name}: +$${amount}`, "#15803D");
+    addLog(`   💸 ${target.name} lost $${amount} in the deal.`, "#DC2626");
+
+    // 画面更新
+    moveAgents();
+}     
     
     // エージェントの状態を更新
     glitchState.agents = agents;

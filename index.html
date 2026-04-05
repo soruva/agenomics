@@ -665,30 +665,32 @@ function showBubble(agent,msg,color,isGlitch){
   setTimeout(()=>b.remove(),3200);
 }
 
-// --- 最小限の不足データ定義 ---
-let glitchState = { winStreak: {}, newsRepeat: 0, prevNewsId: null };
-let glitchCooldown = {};
-let currentNews = null; // ニュース機能が未実装ならnullでOK
+// --- 足りない変数の定義（ここを runTurn の上に貼り付け） ---
+let st = { paused: false, turn: 0, round: 0, trades: 0 };
+let agents = [
+  { id: 'aria', name: 'Aria', emoji: '💃', wealthUSD: 100, x: 50, y: 50, style: 'aggressive' },
+  { id: 'bolt', name: 'Bolt', emoji: '⚡', wealthUSD: 100, x: 150, y: 50, style: 'conservative' },
+  { id: 'dex', name: 'Dex', emoji: '🎮', wealthUSD: 100, x: 100, y: 150, style: 'opportunistic' }
+];
+let GOODS = ["Stock", "Crypto", "Bond", "Gold"];
+let selAgent = 'aria'; // プレイヤーが選んでいるエージェントID
+let ownedSkills = new Set();
+let cardCooldowns = {};
+let myPort = 100; // 自分のポートフォリオ
+let myPoints = 0;
+let currentMode = 'normal';
+let activeTab = 'main';
 
-const GLITCHES = {
-  aria: {
-    check: (a) => a.wealthUSD > 400, // 資産が400を超えたら
-    msgs: ["Going out to celebrate... 🥂"],
-    color: "#FCD34D",
-    skipTurn: true
-  },
-  bolt: {
-    check: () => currentMode === 'chaos', // カオスモードなら
-    msgs: ["TOO CHAOTIC. Selling everything. 😱"],
-    color: "#EF4444",
-    onTrigger: (a) => { a.wealthUSD *= 0.75; }
-  },
-  // 他のエージェントも同様に定義...
-};
-
-// --- ヘルパー関数（もしなければ） ---
-function fmt(n) { return Math.floor(n).toLocaleString(); }
-function addLog(m, c) { console.log(`%c${m}`, `color:${c}`); } // 簡易ログ
+// --- 足りない関数のダミー定義（エラー防止） ---
+const showBubble = (a, m, c) => console.log(`${a.name}: ${m}`);
+const addLog = (m, c) => console.log(m);
+const moveAgents = () => {}; 
+const updateLB = () => {}; 
+const updateMetrics = () => {}; 
+const updateChart = () => {};
+const fireNews = () => {};
+const buildCards = () => {};
+const fmt = (n) => Math.floor(n).toLocaleString();
   
 function runTurn(){
   if(st.paused)return;

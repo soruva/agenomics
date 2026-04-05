@@ -2,239 +2,166 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Agenomics Architecture | Agentic Economy Sandbox</title>
+    <title>Agenomics Core | Manipulation v1.1</title>
     <style>
         :root {
-            --bg: #050508;
-            --card: #12121a;
-            --accent: #4cc9f0;
-            --green: #06d6a0;
-            --red: #ef476f;
-            --yellow: #ffd166;
-            --text: #e0e1dd;
-            --border: rgba(76, 201, 240, 0.2);
+            --bg: #050508; --card: #12121a; --accent: #4cc9f0;
+            --green: #06d6a0; --red: #ef476f; --yellow: #ffd166; --text: #e0e1dd;
         }
-
         body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'JetBrains Mono', 'Monaco', 'Consolas', monospace;
-            margin: 0;
+            background-color: var(--bg); color: var(--text);
+            font-family: 'JetBrains Mono', monospace; margin: 0;
             display: grid;
-            grid-template-columns: 220px 1fr 240px;
-            grid-template-rows: 50px 1fr 180px;
-            grid-template-areas: 
-                "header header header"
-                "nav arena rank"
-                "footer footer footer";
-            height: 100vh;
-            overflow: hidden;
+            grid-template-columns: 240px 1fr 240px;
+            grid-template-rows: 60px 1fr 180px;
+            grid-template-areas: "header header header" "nav arena rank" "footer footer footer";
+            height: 100vh; overflow: hidden;
         }
+        h1 { grid-area: header; margin: 0; display: flex; align-items: center; padding-left: 20px; font-size: 0.9rem; color: var(--accent); border-bottom: 1px solid rgba(76, 201, 240, 0.2); letter-spacing: 2px; }
+        .controls { grid-area: nav; padding: 20px; background: var(--card); border-right: 1px solid rgba(76, 201, 240, 0.1); display: flex; flex-direction: column; gap: 10px; }
+        #arena { grid-area: arena; position: relative; background: #08080c; margin: 10px; border-radius: 4px; border: 1px solid rgba(76, 201, 240, 0.1); overflow: hidden; transition: background 0.3s; }
+        #leaderboard { grid-area: rank; padding: 20px; background: var(--card); border-left: 1px solid rgba(76, 201, 240, 0.1); }
+        #log { grid-area: footer; background: #000; margin: 0 10px 10px 10px; padding: 12px; border-radius: 2px; overflow-y: auto; font-size: 0.75rem; border-top: 1px solid var(--accent); }
+        
+        .btn { padding: 8px; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 2px; cursor: pointer; text-align: center; font-size: 0.65rem; font-weight: bold; transition: 0.2s; text-transform: uppercase; }
+        .btn:hover { background: var(--accent); color: var(--bg); }
+        .btn.card { border-color: var(--yellow); color: var(--yellow); margin-top: 5px; }
+        .btn.card:hover { background: var(--yellow); color: var(--bg); }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        h1 {
-            grid-area: header;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            padding-left: 20px;
-            font-size: 0.9rem;
-            color: var(--accent);
-            border-bottom: 1px solid var(--border);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .controls { 
-            grid-area: nav;
-            padding: 20px;
-            background: var(--card);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        #arena {
-            grid-area: arena;
-            position: relative;
-            background: radial-gradient(circle at center, #10101a 0%, #050508 100%);
-            margin: 10px;
-            border-radius: 4px;
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
-
-        #leaderboard {
-            grid-area: rank;
-            padding: 20px;
-            background: var(--card);
-            border-left: 1px solid var(--border);
-        }
-
-        #log {
-            grid-area: footer;
-            background: #000;
-            margin: 0 10px 10px 10px;
-            padding: 12px;
-            border-radius: 2px;
-            overflow-y: auto;
-            font-size: 0.75rem;
-            border-top: 1px solid var(--accent);
-            line-height: 1.4;
-        }
-
-        .btn {
-            padding: 10px;
-            background: transparent;
-            border: 1px solid var(--accent);
-            color: var(--accent);
-            border-radius: 2px;
-            cursor: pointer;
-            text-align: center;
-            font-size: 0.7rem;
-            font-weight: bold;
-            transition: 0.2s;
-            text-transform: uppercase;
-        }
-
-        .btn:hover {
-            background: var(--accent);
-            color: var(--bg);
-            box-shadow: 0 0 10px var(--accent);
-        }
-
-        .agent { 
-            position: absolute; 
-            font-size: 38px; 
-            transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
-            filter: drop-shadow(0 0 5px rgba(255,255,255,0.1));
-            user-select: none;
-        }
-
-        #rank-list div {
-            margin-bottom: 10px;
-            padding: 5px;
-            border-bottom: 1px solid #222;
-        }
-
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--accent); }
-        /* 取引時のフラッシュエフェクト */
-.flash {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: rgba(76, 201, 240, 0.1);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.1s;
-    z-index: 5;
-}
-/* エージェントの吹き出し */
-.bubble {
-    position: absolute;
-    background: var(--card);
-    border: 1px solid var(--accent);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.6rem;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-    z-index: 20;
-    color: var(--accent);
-}
+        .agent { position: absolute; font-size: 38px; transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1); user-select: none; z-index: 10; }
+        .bubble { position: absolute; background: var(--card); border: 1px solid var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 0.6rem; bottom: 50px; left: 50%; transform: translateX(-50%); white-space: nowrap; z-index: 20; }
+        .stat-box { margin-bottom: 20px; padding: 10px; border: 1px solid #222; font-size: 0.7rem; color: var(--yellow); }
     </style>
 </head>
 <body>
-
-    <h1>AGENOMICS_CORE_V1.0</h1>
-
+    <h1>AGENOMICS_SYSTEM_V1.1 // MANIPULATION_ACTIVE</h1>
     <nav class="controls">
-        <div class="btn" onclick="startMode('normal')">RUN_SYSTEM</div>
+        <div class="stat-box">POINTS: <span id="player-points">0</span></div>
+        <div class="btn" onclick="startMode('normal')">RUN_SIMULATION</div>
         <div class="btn" onclick="togglePause()">PAUSE/RESUME</div>
-        <div class="btn" onclick="showTab('main')">DASHBOARD</div>
+        <hr style="width:100%; border:0; border-top:1px solid #222; margin:10px 0;">
+        <div style="font-size:0.6rem; color:var(--accent)">MANIPULATION_TOOLS</div>
+        <button id="card-crash" class="btn card" onclick="triggerEvent('CRASH')" disabled>EXECUTE_CRASH (5pts)</button>
+        <button id="card-pump" class="btn card" onclick="triggerEvent('PUMP')" disabled>EXECUTE_PUMP (5pts)</button>
+        <button id="card-tax" class="btn card" onclick="triggerEvent('WHALE_TAX')" disabled>WHALE_TAX (8pts)</button>
     </nav>
-
     <main id="arena"></main>
-
     <aside id="leaderboard">
-        <div style="color:var(--accent); font-size:0.8rem; font-weight:bold; margin-bottom:15px; letter-spacing:1px;">ACTIVE_RANKINGS</div>
+        <div style="color:var(--accent); font-size:0.8rem; font-weight:bold; margin-bottom:15px;">LIVE_RANKINGS</div>
         <div id="rank-list"></div>
     </aside>
-
-    <footer id="log">SYSTEM_INITIALIZED: WAITING_FOR_INPUT...</footer>
+    <footer id="log">READY_FOR_DEPLOYMENT...</footer>
 
     <script>
-                // --- DATA_MODEL ---
-        let st = { paused: false, turn: 0, round: 0, trades: 0 };
+        let st = { paused: false, turn: 0, points: 0 };
         let agents = [
-            { id: 'aria', name: 'ARIA', emoji: '💃', wealthUSD: 100, x: 100, y: 100, style: 'aggressive' },
-            { id: 'bolt', name: 'BOLT', emoji: '⚡', wealthUSD: 100, x: 200, y: 100, style: 'conservative' },
-            { id: 'coda', name: 'CODA', emoji: '🎹', wealthUSD: 100, x: 300, y: 100, style: 'balanced' },
-            { id: 'dex',  name: 'DEX',  emoji: '🤖', wealthUSD: 100, x: 100, y: 200, style: 'predator' },
-            { id: 'echo', name: 'ECHO', emoji: '📈', wealthUSD: 100, x: 200, y: 200, style: 'volatile' }
+            { id: 'aria', name: 'ARIA', emoji: '💃', wealthUSD: 100, x: 100, y: 100 },
+            { id: 'bolt', name: 'BOLT', emoji: '⚡', wealthUSD: 100, x: 200, y: 100 },
+            { id: 'coda', name: 'CODA', emoji: '🎹', wealthUSD: 100, x: 300, y: 100 },
+            { id: 'dex',  name: 'DEX',  emoji: '🤖', wealthUSD: 100, x: 100, y: 200 },
+            { id: 'echo', name: 'ECHO', emoji: '📈', wealthUSD: 100, x: 200, y: 200 }
         ];
-        let GOODS = ["EQUITIES", "CRYPTO", "GOLD", "FOREX", "NFTs"];
+        let GOODS = ["EQUITIES", "CRYPTO", "GOLD", "FOREX"];
 
-        function startMode(mode) {
+        function startMode() {
             if(window.gameInterval) clearInterval(window.gameInterval);
             window.gameInterval = setInterval(runTurn, 800);
             renderAgents();
-            addLog("SYSTEM_START: ECONOMY_SIMULATION_ACTIVE", "#4cc9f0");
+            addLog("SYSTEM_ONLINE: MONITOR_AND_MANIPULATE", "#4cc9f0");
         }
 
-        function togglePause() {
-            st.paused = !st.paused;
-            addLog(st.paused ? "!! SYSTEM_HALTED" : ">> SYSTEM_RESUMED", "#ffd166");
-        }
+        function togglePause() { st.paused = !st.paused; addLog(st.paused ? "!! HALTED" : ">> RESUMED", "#ffd166"); }
 
         function addLog(msg, color) {
             const l = document.getElementById('log');
-            const ts = new Date().toLocaleTimeString('en-US',{hour12:false});
-            l.innerHTML += `<div style="color:${color}">[${ts}] ${msg}</div>`;
+            l.innerHTML += `<div style="color:${color}">[${new Date().toLocaleTimeString('en-US',{hour12:false})}] ${msg}</div>`;
             l.scrollTop = l.scrollHeight;
         }
 
         function renderAgents() {
             const ar = document.getElementById('arena');
-            ar.innerHTML = '<canvas id="trade-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas><div id="flash-layer" class="flash"></div>';
+            ar.innerHTML = '<canvas id="trade-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>';
             agents.forEach(a => {
                 const d = document.createElement('div');
                 d.className = 'agent'; d.id = 'agent-' + a.id;
                 d.style.left = a.x + 'px'; d.style.top = a.y + 'px';
-                d.textContent = a.emoji;
-                ar.appendChild(d);
+                d.textContent = a.emoji; ar.appendChild(d);
             });
-            resizeCanvas();
+            const c = document.getElementById('trade-canvas');
+            c.width = ar.clientWidth; c.height = ar.clientHeight;
         }
 
-        function resizeCanvas() {
-            const c = document.getElementById('trade-canvas');
-            if(c) { c.width = c.offsetWidth; c.height = c.offsetHeight; }
-        }
-
-        function drawTradeLine(from, to) {
-            const c = document.getElementById('trade-canvas');
-            if(!c) return;
+        function drawLine(from, to) {
+            const c = document.getElementById('trade-canvas'); if(!c) return;
             const ctx = c.getContext('2d');
             ctx.strokeStyle = '#4cc9f0'; ctx.lineWidth = 2; ctx.beginPath();
             ctx.moveTo(from.x + 20, from.y + 20); ctx.lineTo(to.x + 20, to.y + 20);
-            ctx.stroke();
-            setTimeout(() => ctx.clearRect(0,0,c.width,c.height), 200);
+            ctx.stroke(); setTimeout(() => ctx.clearRect(0,0,c.width,c.height), 200);
         }
 
         function showBubble(id, txt) {
-            const el = document.getElementById('agent-' + id);
-            if(!el) return;
-            const b = document.createElement('div');
-            b.className = 'bubble'; b.textContent = txt;
-            el.appendChild(b);
-            setTimeout(() => b.remove(), 1200);
+            const el = document.getElementById('agent-' + id); if(!el) return;
+            const b = document.createElement('div'); b.className = 'bubble'; b.textContent = txt;
+            el.appendChild(b); setTimeout(() => b.remove(), 1200);
         }
 
-        function moveAgents() {
+        function updateLB() {
+            const list = document.getElementById('rank-list');
+            const sorted = [...agents].sort((a, b) => b.wealthUSD - a.wealthUSD);
+            list.innerHTML = sorted.map((a, i) => `<div>${i+1}. ${a.emoji} $${Math.floor(a.wealthUSD)}</div>`).join('');
+            document.getElementById('player-points').textContent = st.points;
+            document.getElementById('card-crash').disabled = st.points < 5;
+            document.getElementById('card-pump').disabled = st.points < 5;
+            document.getElementById('card-tax').disabled = st.points < 8;
+        }
+
+        function triggerEvent(type) {
+            const ar = document.getElementById('arena');
+            if (type === 'CRASH') {
+                st.points -= 5;
+                agents.forEach(a => a.wealthUSD *= 0.7);
+                addLog("!! MANUAL_INTERVENTION: MARKET_CRASH_EXECUTED", "#ef476f");
+                ar.style.background = "#200"; setTimeout(() => ar.style.background = "#08080c", 500);
+            } else if (type === 'PUMP') {
+                st.points -= 5;
+                agents.forEach(a => a.wealthUSD *= 1.3);
+                addLog(">> MANUAL_INTERVENTION: MARKET_PUMP_EXECUTED", "#06d6a0");
+                ar.style.background = "#020"; setTimeout(() => ar.style.background = "#08080c", 500);
+            } else if (type === 'WHALE_TAX') {
+                st.points -= 8;
+                const sorted = [...agents].sort((a,b) => b.wealthUSD - a.wealthUSD);
+                const whale = sorted[0];
+                const tax = whale.wealthUSD * 0.4;
+                whale.wealthUSD -= tax;
+                agents.forEach(a => { if(a.id !== whale.id) a.wealthUSD += tax/4; });
+                addLog(`[TAX] $${Math.floor(tax)} REPOSSESSED FROM ${whale.name}`, "#ffd166");
+                showBubble(whale.id, "TAXED! 💸");
+            }
+            updateLB();
+        }
+
+        function runTurn() {
+            if (st.paused) return;
+            st.turn++;
+
+            // Earn points every 10 turns
+            if (st.turn % 10 === 0) { st.points += 2; addLog("[DIVIDENDS] +2 INTERVENTION_POINTS EARNED", "#ffd166"); }
+
+            // Random bailout
+            agents.forEach(a => { if(a.wealthUSD < 20) { a.wealthUSD = 60; showBubble(a.id, "RESCUED! 🏦"); } });
+
+            const actor = agents[Math.floor(Math.random() * agents.length)];
+            const target = agents.filter(a => a.id !== actor.id)[Math.floor(Math.random()*4)];
+            const amount = Math.floor(Math.random() * 40) + 10;
+
+            actor.wealthUSD += amount;
+            target.wealthUSD -= amount;
+
+            drawLine(actor, target);
+            addLog(`${actor.name} > ${target.name} | +$${amount}`, "#06d6a0");
+            
+            // Move agents
             const ar = document.getElementById('arena');
             agents.forEach(a => {
                 a.x += (Math.random() - 0.5) * 100; a.y += (Math.random() - 0.5) * 100;
@@ -243,54 +170,6 @@
                 const el = document.getElementById('agent-' + a.id);
                 if(el) { el.style.left = a.x + 'px'; el.style.top = a.y + 'px'; }
             });
-        }
-
-        function updateLB() {
-            const list = document.getElementById('rank-list');
-            const sorted = [...agents].sort((a, b) => b.wealthUSD - a.wealthUSD);
-            list.innerHTML = sorted.map((a, i) => `<div>${i+1}. ${a.emoji} $${Math.floor(a.wealthUSD)}</div>`).join('');
-        }
-
-        // --- CORE_LOGIC ---
-        function runTurn() {
-            if (st.paused) return;
-            st.turn++;
-
-            // 1. Random Market Events every 10 turns
-            if (st.turn % 10 === 0) {
-                const isCrash = Math.random() > 0.5;
-                const impact = isCrash ? 0.8 : 1.2;
-                const msg = isCrash ? "MARKET_CRASH! -20% ALL" : "BULL_RUN! +20% ALL";
-                agents.forEach(a => a.wealthUSD *= impact);
-                addLog(`[EVENT] ${msg}`, isCrash ? "#ef476f" : "#06d6a0");
-                return;
-            }
-
-            // 2. Bailouts
-            agents.forEach(a => { 
-                if(a.wealthUSD < 20) { a.wealthUSD = 70; showBubble(a.id, "RESCUED! 🏦"); }
-            });
-
-            // 3. Selection Logic (DEX targets the Leader)
-            const actor = agents[Math.floor(Math.random() * agents.length)];
-            let target;
-            if (actor.id === 'dex') {
-                target = [...agents].sort((a,b) => b.wealthUSD - a.wealthUSD)[0];
-                if (target.id === 'dex') target = agents.find(a => a.id !== 'dex');
-                showBubble('dex', "Hacking the Whale... 🎯");
-            } else {
-                target = agents.filter(a => a.id !== actor.id)[Math.floor(Math.random()*4)];
-            }
-
-            // 4. Transaction
-            const amount = Math.floor(Math.random() * 40) + 10;
-            actor.wealthUSD += amount;
-            target.wealthUSD -= amount;
-
-            drawTradeLine(actor, target);
-            addLog(`${actor.name} extracted $${amount} from ${target.name}`, "#06d6a0");
-            
-            moveAgents();
             updateLB();
         }
     </script>

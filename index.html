@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Agenomics Sandbox</title>
     <style>
-        :root {
+    :root {
     --bg: #0a0a0f;
     --card: #16161e;
     --accent: #7aa2f7;
@@ -17,89 +17,87 @@
 body {
     background-color: var(--bg);
     color: var(--text);
-    font-family: 'Inter', -apple-system, sans-serif;
+    font-family: 'Inter', sans-serif;
     margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
+    height: 100vh;
+    display: grid;
+    /* 左200px, 中央(可変), 右200px の3カラム構成 */
+    grid-template-columns: 200px 1fr 200px;
+    grid-template-rows: auto 1fr 200px;
+    grid-template-areas: 
+        "header header header"
+        "nav arena rank"
+        "footer footer footer";
 }
 
 h1 {
+    grid-area: header;
+    text-align: center;
     color: var(--accent);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    font-size: 1.5rem;
-    margin: 20px 0;
-    text-shadow: 0 0 10px rgba(122, 162, 247, 0.5);
+    letter-spacing: 4px;
+    font-size: 1.2rem;
+    margin: 10px 0;
+    border-bottom: 1px solid rgba(122, 162, 247, 0.2);
 }
 
-/* アリーナ（砂場）のデザイン */
-#arena {
-    width: 90vw;
-    max-width: 600px;
-    height: 400px;
-    background: radial-gradient(circle, #1a1b26 0%, #0a0a0f 100%);
-    border: 1px solid rgba(122, 162, 247, 0.2);
-    border-radius: 12px;
-    position: relative;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 30px rgba(122, 162, 247, 0.1);
-    overflow: hidden;
-    margin-bottom: 20px;
+/* 左側ナビゲーション（ボタン類） */
+.controls { 
+    grid-area: nav;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+    border-right: 1px solid rgba(122, 162, 247, 0.1);
 }
 
-/* ボタンのデザイン */
-.controls { display: flex; gap: 10px; margin-bottom: 20px; }
 .btn {
-    padding: 10px 20px;
+    width: 100%;
+    padding: 12px;
     background: var(--card);
     border: 1px solid var(--accent);
     color: var(--accent);
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
-    font-weight: bold;
-    transition: all 0.2s;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-}
-.btn:hover {
-    background: var(--accent);
-    color: var(--bg);
-    box-shadow: 0 0 15px var(--accent);
+    font-size: 0.75rem;
+    text-align: center;
+    transition: 0.3s;
 }
 
-/* ログエリア */
-#log {
-    width: 90vw;
-    max-width: 600px;
-    height: 180px;
-    background: var(--card);
+.btn:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 10px var(--accent); }
+
+/* 中央アリーナ */
+#arena {
+    grid-area: arena;
+    margin: 10px;
+    background: radial-gradient(circle, #1a1b26 0%, #0a0a0f 100%);
+    border: 1px solid rgba(122, 162, 247, 0.2);
     border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 右側ランキング */
+#leaderboard {
+    grid-area: rank;
+    padding: 20px;
+    background: var(--card);
+    border-left: 1px solid rgba(122, 162, 247, 0.1);
+}
+
+/* 下部ログ */
+#log {
+    grid-area: footer;
+    margin: 0 10px 10px 10px;
+    background: #000;
     padding: 15px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.85rem;
-    overflow-y: scroll;
+    font-size: 0.8rem;
+    overflow-y: auto;
     border-top: 2px solid var(--accent);
 }
 
-/* ランキングボード */
-#leaderboard {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: rgba(22, 22, 30, 0.9);
-    backdrop-filter: blur(10px);
-    padding: 15px;
-    border-radius: 10px;
-    border: 1px solid rgba(122, 162, 247, 0.3);
-    min-width: 140px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-/* エージェントのアニメーション */
-.agent {
-    filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
-}
+/* エージェント描画用 */
+.agent { position: absolute; font-size: 32px; transition: 0.5s ease-out; }    
  </style>
 </head>
 <body>

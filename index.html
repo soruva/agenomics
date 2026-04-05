@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Agenomics Core v1.6 | Addiction & Empire</title>
+    <title>Agenomics Core v1.7 | Corporate Empire</title>
     <style>
         :root {
-            --bg: #030305; --card: #0d0d14; --accent: #4cc9f0;
+            --bg: #020204; --card: #0a0a0f; --accent: #4cc9f0;
             --green: #06d6a0; --red: #ef476f; --yellow: #ffd166; --text: #e0e1dd;
         }
         body {
@@ -17,76 +17,59 @@
             grid-template-areas: "header header header" "nav arena rank" "footer footer footer";
             height: 100vh; overflow: hidden;
         }
-        h1 { grid-area: header; margin: 0; display: flex; align-items: center; padding-left: 20px; font-size: 0.9rem; color: var(--accent); border-bottom: 1px solid var(--accent); letter-spacing: 2px; text-shadow: 0 0 10px var(--accent); }
-        .controls { grid-area: nav; padding: 15px; background: var(--card); border-right: 1px solid #222; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
-        #arena { grid-area: arena; position: relative; background: radial-gradient(circle, #0c0c14 0%, #030305 100%); margin: 10px; border-radius: 8px; border: 1px solid #222; overflow: hidden; }
-        #leaderboard { grid-area: rank; padding: 15px; background: var(--card); border-left: 1px solid #222; overflow-y: auto; }
+        h1 { grid-area: header; margin: 0; display: flex; align-items: center; padding-left: 20px; font-size: 0.9rem; color: var(--accent); border-bottom: 1px solid var(--accent); letter-spacing: 2px; }
+        .controls { grid-area: nav; padding: 15px; background: var(--card); border-right: 1px solid #1a1a1a; display: flex; flex-direction: column; gap: 8px; }
+        #arena { grid-area: arena; position: relative; background: radial-gradient(circle, #08080c 0%, #020204 100%); margin: 10px; border-radius: 12px; border: 1px solid #1a1a1a; overflow: hidden; }
+        #leaderboard { grid-area: rank; padding: 15px; background: var(--card); border-left: 1px solid #1a1a1a; overflow-y: auto; }
         #log { grid-area: footer; background: #000; margin: 0 10px 10px 10px; padding: 12px; border-radius: 4px; overflow-y: auto; font-size: 0.7rem; border-top: 2px solid var(--accent); }
         
         .btn { padding: 10px; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; cursor: pointer; text-align: center; font-size: 0.65rem; font-weight: bold; transition: 0.1s; text-transform: uppercase; }
         .btn:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 15px var(--accent); }
-        .btn.gold { border-color: var(--yellow); color: var(--yellow); }
-        .btn:disabled { opacity: 0.1; cursor: not-allowed; }
-
-        .agent { position: absolute; font-size: 42px; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); user-select: none; z-index: 10; display: flex; flex-direction: column; align-items: center; }
-        .agent-label { font-size: 10px; background: rgba(0,0,0,0.7); padding: 1px 4px; border-radius: 3px; margin-bottom: 2px; white-space: nowrap; }
-        .inventory { display: flex; gap: 2px; font-size: 12px; margin-top: -2px; }
-        .bubble { position: absolute; background: white; color: black; padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; bottom: 75px; left: 50%; transform: translateX(-50%); white-space: nowrap; z-index: 20; font-weight: bold; box-shadow: 0 0 20px white; }
+        
+        .agent { position: absolute; font-size: 42px; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; display: flex; flex-direction: column; align-items: center; }
+        .corp-tag { font-size: 9px; background: var(--yellow); color: black; padding: 1px 4px; border-radius: 2px; font-weight: bold; margin-bottom: 2px; }
+        .ceo-glow { filter: drop-shadow(0 0 15px var(--yellow)); transform: scale(1.2); }
+        .hq { position: absolute; font-size: 80px; opacity: 0.15; z-index: 1; pointer-events: none; }
         
         canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
-        .rank-item { border-bottom: 1px solid #222; padding: 10px 0; font-size: 0.75rem; transition: 0.3s; }
-        .rank-item.highlight { background: rgba(76, 201, 240, 0.1); }
+        .rank-item { border-bottom: 1px solid #1a1a1a; padding: 10px 0; font-size: 0.75rem; }
     </style>
 </head>
 <body>
-    <h1>AGENOMICS_V1.6 // ADDICTION_PROTOCOL_ACTIVE</h1>
+    <h1>AGENOMICS_V1.7 // CORPORATE_EMPIRE_PROTOCOL</h1>
     <nav class="controls">
         <div style="padding:10px; border:1px solid var(--accent); font-size:0.7rem; color:var(--yellow); text-align:center;">PTS: <span id="player-points">0</span></div>
-        <div class="btn" onclick="startMode()">RUN_ADDICTION</div>
+        <div class="btn" onclick="startMode()">RUN_EMPIRE</div>
         <div class="btn" onclick="togglePause()">PAUSE/RESUME</div>
-        
-        <div id="fx-panel" style="margin-top:10px; padding:10px; background:#000; border-radius:4px;">
-            <div style="font-size:0.6rem; color:var(--accent); margin-bottom:5px;">FX_WATCH</div>
-            <div id="fx-rates"></div>
-        </div>
-
-        <hr style="width:100%; border:0; border-top:1px solid #333; margin:10px 0;">
-        <button id="card-moon" class="btn gold" onclick="triggerEvent('CRYPTO_MOON')" disabled>CRYPTO_MOON (5pt)</button>
-        <button id="card-casino" class="btn gold" onclick="triggerEvent('CASINO')" disabled>FORCE_CASINO (7pt)</button>
+        <hr style="width:100%; border:0; border-top:1px solid #222; margin:10px 0;">
+        <button id="card-moon" class="btn" style="color:var(--yellow); border-color:var(--yellow);" onclick="triggerEvent('CRYPTO_MOON')" disabled>CRYPTO_MOON (5pt)</button>
         <button id="card-tax" class="btn" style="color:var(--red); border-color:var(--red);" onclick="triggerEvent('WHALE_TAX')" disabled>WHALE_TAX (8pt)</button>
     </nav>
 
     <main id="arena"></main>
     <aside id="leaderboard">
-        <div style="color:var(--accent); font-size:0.8rem; font-weight:bold; margin-bottom:15px;">MARKET_EMPIRE</div>
+        <div style="color:var(--accent); font-size:0.8rem; font-weight:bold; margin-bottom:15px;">GLOBAL_HEGEMONY</div>
         <div id="rank-list"></div>
     </aside>
-    <footer id="log">SYSTEM_STABLE: AWAITING_CHAOS...</footer>
+    <footer id="log">CORPORATE_READY...</footer>
 
     <script>
         let st = { paused: false, turn: 0, points: 0 };
-        let rates = { USD: 1, JPY: 150, BTC: 0.000015 };
+        let rates = { USD: 1, BTC: 0.000015 };
         
-        const ITEMS = [
-            { name: "Coffee", cost: 100, emoji: "☕", buff: "awake" },
-            { name: "Supercar", cost: 2000, emoji: "🏎️", buff: "speed" },
-            { name: "Mansion", cost: 8000, emoji: "🏰", buff: "prestige" },
-            { name: "Rocket", cost: 25000, emoji: "🚀", buff: "god" }
-        ];
-
         let agents = [
-            { id: 'aria', name: 'ARIA', emoji: '💃', x: 100, y: 100, wealth: 150, items: [], status: "" },
-            { id: 'bolt', name: 'BOLT', emoji: '⚡', x: 300, y: 100, wealth: 150, items: [], status: "" },
-            { id: 'coda', name: 'CODA', emoji: '🎹', x: 200, y: 200, wealth: 150, items: [], status: "" },
-            { id: 'dex',  name: 'DEX',  emoji: '🤖', x: 50,  y: 250, wealth: 150, items: [], status: "" },
-            { id: 'echo', name: 'ECHO', emoji: '📈', x: 350, y: 250, wealth: 150, items: [], status: "" }
+            { id: 'aria', name: 'ARIA', emoji: '💃', x: 100, y: 100, wealth: 150, ceo: null, employees: [] },
+            { id: 'bolt', name: 'BOLT', emoji: '⚡', x: 300, y: 100, wealth: 150, ceo: null, employees: [] },
+            { id: 'coda', name: 'CODA', emoji: '🎹', x: 200, y: 200, wealth: 150, ceo: null, employees: [] },
+            { id: 'dex',  name: 'DEX',  emoji: '🤖', x: 50,  y: 250, wealth: 150, ceo: null, employees: [] },
+            { id: 'echo', name: 'ECHO', emoji: '📈', x: 350, y: 250, wealth: 150, ceo: null, employees: [] }
         ];
 
         function startMode() {
             if(window.gameInterval) clearInterval(window.gameInterval);
-            window.gameInterval = setInterval(runTurn, 700);
+            window.gameInterval = setInterval(runTurn, 800);
             renderAgents();
-            addLog("!! ADDICTION_SYSTEM_V1.6_STARTED", "#4cc9f0");
+            addLog("!! EMPIRE_V1.7_ONLINE: CAPITALISM_UNLEASHED", "#4cc9f0");
         }
 
         function togglePause() { st.paused = !st.paused; }
@@ -105,17 +88,9 @@
             agents.forEach(a => {
                 const d = document.createElement('div');
                 d.className = 'agent'; d.id = 'agent-' + a.id;
-                d.innerHTML = `<div class="agent-label" id="label-${a.id}">POOR ${a.name}</div><div>${a.emoji}</div><div class="inventory" id="inv-${a.id}"></div>`;
+                d.innerHTML = `<div id="tag-${a.id}"></div><div>${a.emoji}</div>`;
                 ar.appendChild(d);
             });
-        }
-
-        function getTitle(w) {
-            if (w > 20000) return "GOD_OF_MARKET";
-            if (w > 5000) return "TYCOON";
-            if (w > 1000) return "MILLIONAIRE";
-            if (w < 50) return "BANKRUPT";
-            return "TRADER";
         }
 
         function updateUI() {
@@ -123,91 +98,93 @@
             const sorted = [...agents].sort((a, b) => b.wealth - a.wealth);
             list.innerHTML = sorted.map((a, i) => `
                 <div class="rank-item">
-                    ${i+1}. ${a.emoji} <b>$${Math.floor(a.wealth)}</b> [${getTitle(a.wealth)}]<br>
-                    <span style="font-size:10px; color:var(--yellow);">${a.items.join('')}</span>
+                    ${i+1}. ${a.emoji} <b>$${Math.floor(a.wealth)}</b><br>
+                    <span style="font-size:10px; color:${a.employees.length ? 'var(--yellow)' : '#888'}">
+                        ${a.employees.length ? '👑 CEO ('+a.employees.length+' staff)' : (a.ceo ? '⛓️ Staff of '+a.ceo : 'Free Agent')}
+                    </span>
                 </div>
             `).join('');
-            
             document.getElementById('player-points').textContent = st.points;
             document.getElementById('card-moon').disabled = st.points < 5;
-            document.getElementById('card-casino').disabled = st.points < 7;
             document.getElementById('card-tax').disabled = st.points < 8;
         }
 
-        function drawNeonBeam(from, to, color) {
+        function drawBeam(from, to, color) {
             const c = document.getElementById('trade-canvas');
-            const ctx = c.getContext('2d'); ctx.strokeStyle = color || '#4cc9f0'; ctx.lineWidth = 3;
+            const ctx = c.getContext('2d'); ctx.strokeStyle = color || '#4cc9f0'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(from.x + 20, from.y + 20); ctx.lineTo(to.x + 20, to.y + 20);
             ctx.stroke(); setTimeout(() => ctx.clearRect(0,0,c.width,c.height), 150);
-        }
-
-        function showBubble(id, txt) {
-            const el = document.getElementById('agent-' + id);
-            const b = document.createElement('div'); b.className = 'bubble'; b.textContent = txt;
-            el.appendChild(b); setTimeout(() => b.remove(), 1200);
-        }
-
-        function triggerEvent(type) {
-            const ar = document.getElementById('arena');
-            if(type === 'CASINO') {
-                st.points -= 7;
-                addLog("🎰 ALL_IN! FORCED CASINO EVENT ACTIVATED", "#ffd166");
-                agents.forEach(a => {
-                    const win = Math.random() > 0.5;
-                    if(win) { a.wealth *= 2; showBubble(a.id, "JACKPOT! 🎰"); }
-                    else { a.wealth *= 0.2; showBubble(a.id, "BUSTED... 💀"); }
-                });
-                ar.style.background = "#320"; setTimeout(()=>ar.style.background="transparent", 500);
-            }
-            updateUI();
         }
 
         function runTurn() {
             if (st.paused) return;
             st.turn++;
-            rates.BTC *= (1 + (Math.random() - 0.5) * 0.2);
-            if (st.turn % 8 === 0) st.points++;
+            if (st.turn % 10 === 0) st.points++;
 
-            // Trade
+            // 1. Transaction Logic
             const actor = agents[Math.floor(Math.random() * agents.length)];
             const target = agents.filter(a => a.id !== actor.id)[Math.floor(Math.random()*4)];
-            
-            let amount = Math.floor(Math.random() * 100) + 20;
-            if(actor.status === "revenge") { amount *= 2; actor.status = ""; }
+            let profit = Math.floor(Math.random() * 80) + 20;
 
-            actor.wealth += amount;
-            target.wealth -= amount;
-            target.status = "revenge"; // Revenge mode for the loser
-
-            drawNeonBeam(actor, target, (amount > 100 ? "#ffd166" : "#4cc9f0"));
-            addLog(`${actor.name} drained $${amount} from ${target.name}`, (amount > 100 ? "#ffd166" : "#06d6a0"));
-
-            // Auto-Buy & Upgrade
-            const nextItem = ITEMS.find(i => actor.wealth >= i.cost && !actor.items.includes(i.emoji));
-            if (nextItem) {
-                actor.items.push(nextItem.emoji);
-                actor.wealth -= nextItem.cost * 0.7;
-                showBubble(actor.id, `Got ${nextItem.name}! ${nextItem.emoji}`);
-                document.getElementById(`inv-${actor.id}`).innerHTML = actor.items.join('');
+            // Corporate Tax (30% to CEO)
+            if (actor.ceo) {
+                const tax = profit * 0.3;
+                const boss = agents.find(a => a.id === actor.ceo);
+                if (boss) {
+                    profit -= tax;
+                    boss.wealth += tax;
+                    addLog(`💼 DIVIDEND: $${Math.floor(tax)} from ${actor.name} to ${boss.name}`, "var(--yellow)");
+                }
             }
 
-            // Update Titles & Position
+            actor.wealth += profit;
+            target.wealth -= profit;
+            drawBeam(actor, target);
+            addLog(`${actor.name} earned $${Math.floor(profit)}`, "#06d6a0");
+
+            // 2. Empire Logic (Establish or Recruit)
+            agents.forEach(a => {
+                // If wealthy enough, become CEO
+                if (a.wealth > 5000 && a.employees.length === 0 && !a.ceo) {
+                    addLog(`🏢 EMPIRE: ${a.name} INCORPORATED!`, "var(--yellow)");
+                    a.status = "CEO";
+                }
+                // CEO recruits poor agents
+                if (a.status === "CEO") {
+                    agents.forEach(staff => {
+                        if (staff.wealth < a.wealth * 0.5 && !staff.ceo && staff.id !== a.id) {
+                            staff.ceo = a.id;
+                            a.employees.push(staff.id);
+                            addLog(`🤝 RECRUIT: ${staff.name} joined ${a.name} Corp.`, "var(--accent)");
+                        }
+                    });
+                }
+            });
+
+            // 3. Render & Move
             const ar = document.getElementById('arena');
             agents.forEach(a => {
-                const label = document.getElementById(`label-${a.id}`);
-                label.textContent = `${getTitle(a.wealth)} ${a.name}`;
-                label.style.color = a.wealth > 1000 ? "#ffd166" : "#4cc9f0";
+                const el = document.getElementById('agent-' + a.id);
+                const tag = document.getElementById('tag-' + a.id);
+                
+                if (a.status === "CEO") {
+                    el.classList.add('ceo-glow');
+                    tag.innerHTML = `<div class="corp-tag">${a.name}_INC</div>`;
+                } else if (a.ceo) {
+                    tag.innerHTML = `<div style="font-size:8px; color:#888;">${a.ceo}</div>`;
+                }
 
-                const speed = a.items.includes("🏎️") ? 180 : 120;
+                // CEOs move less (Headquarters), Employees swarm
+                const speed = a.status === "CEO" ? 20 : 130;
                 a.x += (Math.random() - 0.5) * speed; a.y += (Math.random() - 0.5) * speed;
                 a.x = Math.max(30, Math.min(ar.clientWidth - 50, a.x));
                 a.y = Math.max(30, Math.min(ar.clientHeight - 50, a.y));
-                const el = document.getElementById('agent-' + a.id);
                 if(el) { el.style.left = a.x + 'px'; el.style.top = a.y + 'px'; }
-                if(a.wealth < 10) { a.wealth = 50; addLog(`🏦 BAILOUT for ${a.name}`, "#ffd166"); }
             });
             updateUI();
         }
+
+        function triggerEvent(t) { if(t==='WHALE_TAX') { st.points -= 8; agents.sort((a,b)=>b.wealth-a.wealth)[0].wealth *= 0.5; updateUI(); } }
     </script>
 </body>
 </html>

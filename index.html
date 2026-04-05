@@ -1,28 +1,28 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Agenomics Architecture</title>
+    <title>Agenomics Architecture | Agentic Economy Sandbox</title>
     <style>
         :root {
-            --bg: #0a0a0f;
-            --card: #16161e;
-            --accent: #7aa2f7;
-            --green: #4ade80;
-            --red: #f87171;
-            --yellow: #fbbf24;
-            --text: #c0caf5;
+            --bg: #050508;
+            --card: #12121a;
+            --accent: #4cc9f0;
+            --green: #06d6a0;
+            --red: #ef476f;
+            --yellow: #ffd166;
+            --text: #e0e1dd;
+            --border: rgba(76, 201, 240, 0.2);
         }
 
         body {
             background-color: var(--bg);
             color: var(--text);
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'JetBrains Mono', 'Monaco', 'Consolas', monospace;
             margin: 0;
             display: grid;
-            /* 左200px, 中央(可変), 右200px の3カラム構成 */
-            grid-template-columns: 200px 1fr 200px;
-            grid-template-rows: 60px 1fr 180px;
+            grid-template-columns: 220px 1fr 240px;
+            grid-template-rows: 50px 1fr 180px;
             grid-template-areas: 
                 "header header header"
                 "nav arena rank"
@@ -36,142 +36,146 @@
             margin: 0;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
+            padding-left: 20px;
+            font-size: 0.9rem;
             color: var(--accent);
-            border-bottom: 1px solid rgba(122, 162, 247, 0.2);
-            letter-spacing: 3px;
+            border-bottom: 1px solid var(--border);
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
-        /* 左側ナビゲーション */
         .controls { 
             grid-area: nav;
             padding: 20px;
-            background: rgba(22, 22, 30, 0.5);
-            border-right: 1px solid rgba(122, 162, 247, 0.1);
+            background: var(--card);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
 
-        /* 中央アリーナ */
         #arena {
             grid-area: arena;
             position: relative;
-            background: radial-gradient(circle, #1a1b26 0%, #0a0a0f 100%);
+            background: radial-gradient(circle at center, #10101a 0%, #050508 100%);
             margin: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(122, 162, 247, 0.1);
+            border-radius: 4px;
+            border: 1px solid var(--border);
             overflow: hidden;
         }
 
-        /* 右側ランキング */
         #leaderboard {
             grid-area: rank;
             padding: 20px;
-            background: rgba(22, 22, 30, 0.5);
-            border-left: 1px solid rgba(122, 162, 247, 0.1);
-            font-family: monospace;
+            background: var(--card);
+            border-left: 1px solid var(--border);
         }
 
-        /* 下部ログ */
         #log {
             grid-area: footer;
             background: #000;
             margin: 0 10px 10px 10px;
-            padding: 15px;
-            border-radius: 4px;
+            padding: 12px;
+            border-radius: 2px;
             overflow-y: auto;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            border-top: 2px solid var(--accent);
+            font-size: 0.75rem;
+            border-top: 1px solid var(--accent);
+            line-height: 1.4;
         }
 
-        /* ボタンデザイン */
         .btn {
-            padding: 12px;
-            background: var(--card);
+            padding: 10px;
+            background: transparent;
             border: 1px solid var(--accent);
             color: var(--accent);
-            border-radius: 4px;
+            border-radius: 2px;
             cursor: pointer;
             text-align: center;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             font-weight: bold;
-            transition: 0.3s;
+            transition: 0.2s;
+            text-transform: uppercase;
         }
+
         .btn:hover {
             background: var(--accent);
             color: var(--bg);
-            box-shadow: 0 0 15px var(--accent);
+            box-shadow: 0 0 10px var(--accent);
         }
 
-        /* エージェント表示用 */
         .agent { 
             position: absolute; 
-            font-size: 40px; 
-            transition: all 0.8s ease-out; 
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+            font-size: 38px; 
+            transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.1));
+            user-select: none;
         }
 
-        /* スクロールバーのカスタマイズ */
-        #log::-webkit-scrollbar { width: 6px; }
-        #log::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+        #rank-list div {
+            margin-bottom: 10px;
+            padding: 5px;
+            border-bottom: 1px solid #222;
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
     </style>
 </head>
 <body>
 
-    <h1>AGENOMICS PROTOTYPE</h1>
+    <h1>AGENOMICS_CORE_V1.0</h1>
 
     <nav class="controls">
-        <div class="btn" onclick="startMode('normal')">🚀 ゲーム開始</div>
-        <div class="btn" onclick="togglePause()">⏸ 停止 / 再開</div>
-        <div class="btn" onclick="showTab('main')">📁 メイン</div>
+        <div class="btn" onclick="startMode('normal')">RUN_SYSTEM</div>
+        <div class="btn" onclick="togglePause()">PAUSE/RESUME</div>
+        <div class="btn" onclick="showTab('main')">DASHBOARD</div>
     </nav>
 
     <main id="arena"></main>
 
     <aside id="leaderboard">
-        <div style="color:var(--accent); font-weight:bold; margin-bottom:10px; border-bottom:1px solid #333;">RANKING</div>
+        <div style="color:var(--accent); font-size:0.8rem; font-weight:bold; margin-bottom:15px; letter-spacing:1px;">ACTIVE_RANKINGS</div>
         <div id="rank-list"></div>
     </aside>
 
-    <footer id="log">ここに取引ログが出ます...</footer>
+    <footer id="log">SYSTEM_INITIALIZED: WAITING_FOR_INPUT...</footer>
 
     <script>
-        // --- 1. 変数定義 ---
+        // --- DATA_MODEL ---
         let st = { paused: false, turn: 0, round: 0, trades: 0 };
         let agents = [
-            { id: 'aria', name: 'Aria', emoji: '💃', wealthUSD: 100, x: 100, y: 100, style: 'aggressive' },
-            { id: 'bolt', name: 'Bolt', emoji: '⚡', wealthUSD: 100, x: 300, y: 100, style: 'conservative' }
+            { id: 'aria', name: 'ARIA', emoji: '💃', wealthUSD: 100, x: 100, y: 100, style: 'aggressive' },
+            { id: 'bolt', name: 'BOLT', emoji: '⚡', wealthUSD: 100, x: 300, y: 100, style: 'conservative' }
         ];
-        let GOODS = ["Stock", "Crypto", "Bond", "Gold"];
+        let GOODS = ["EQUITIES", "CRYPTO", "COMMODITIES", "FOREX"];
         let currentMode = 'normal';
         let cardCooldowns = {};
         let glitchState = { winStreak: {}, newsRepeat: 0 };
 
-        // --- 2. 基本機能 ---
+        // --- SYSTEM_CONTROLS ---
         function startMode(mode) {
-            console.log("🚀 Start: " + mode);
+            console.log("SYSTEM_START: " + mode);
             if(window.gameInterval) clearInterval(window.gameInterval);
             window.gameInterval = setInterval(runTurn, 1000);
             renderAgents();
+            addLog("CORE_ENGINE_STARTED: MODE_" + mode.toUpperCase(), "#4cc9f0");
         }
 
         function togglePause() {
             st.paused = !st.paused;
-            addLog(st.paused ? "⏸ PAUSED" : "▶️ RESUMED", "#fbbf24");
+            addLog(st.paused ? "!! SYSTEM_HALTED" : ">> SYSTEM_RESUMED", "#ffd166");
         }
 
         function addLog(msg, color) {
             const l = document.getElementById('log');
-            l.innerHTML += `<div style="color:${color}; margin-bottom:4px;">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+            const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
+            l.innerHTML += `<div style="color:${color}">[${timestamp}] ${msg}</div>`;
             l.scrollTop = l.scrollHeight;
         }
 
         function fmt(n) { return Math.floor(n).toLocaleString(); }
 
-        // --- 3. 描画・移動 ---
+        // --- VISUAL_ENGINE ---
         function renderAgents() {
             const ar = document.getElementById('arena');
             ar.innerHTML = '';
@@ -187,13 +191,13 @@
 
         function moveAgents() {
             const ar = document.getElementById('arena');
-            const w = ar.clientWidth - 50;
-            const h = ar.clientHeight - 50;
+            const w = ar.clientWidth - 60;
+            const h = ar.clientHeight - 60;
             agents.forEach(a => {
-                a.x += (Math.random() - 0.5) * 100;
-                a.y += (Math.random() - 0.5) * 100;
-                a.x = Math.max(20, Math.min(w, a.x));
-                a.y = Math.max(20, Math.min(h, a.y));
+                a.x += (Math.random() - 0.5) * 120;
+                a.y += (Math.random() - 0.5) * 120;
+                a.x = Math.max(30, Math.min(w, a.x));
+                a.y = Math.max(30, Math.min(h, a.y));
             });
             renderAgents();
         }
@@ -202,48 +206,48 @@
             const list = document.getElementById('rank-list');
             const sorted = [...agents].sort((a, b) => b.wealthUSD - a.wealthUSD);
             list.innerHTML = sorted.map((a, i) => 
-                `<div style="margin-bottom:8px;">${i+1}. ${a.emoji} $${fmt(a.wealthUSD)}</div>`
+                `<div>${i+1}. ${a.emoji} $${fmt(a.wealthUSD)}</div>`
             ).join('');
         }
 
-        // --- 4. メインロジック ---
+        // --- CORE_LOGIC ---
         function runTurn() {
             if (st.paused) return;
             st.turn++;
 
-            // 破産防止
+            // Safety Net: Central Bank Intervention
             agents.forEach(a => { 
-                if(a.wealthUSD < 10) {
-                    a.wealthUSD = 50; 
-                    addLog(`🏦 中央銀行が ${a.emoji}${a.name} を救済! (+$50)`, "#fbbf24");
+                if(a.wealthUSD < 15) {
+                    a.wealthUSD = 60; 
+                    addLog(`[RESCUE] CENTRAL_BANK INJECTED $60 LIQUIDITY INTO ${a.name}`, "#ffd166");
                 }
             });
 
-            // Ariaバグ
+            // Glitch: ARIA's Party Mode (Profit Threshold)
             const aria = agents.find(a => a.id === 'aria');
-            if (aria && aria.wealthUSD >= 250) {
-                addLog(`🍾 Aria: 儲けすぎたわ！飲みに行く！🥂`, "#fbbf24");
-                aria.wealthUSD -= 80;
+            if (aria && aria.wealthUSD >= 280) {
+                addLog(`[GLITCH] ARIA: EXCESS_PROFIT_DETECTED. EXITING_MARKET_FOR_CELEBRATION 🥂`, "#ffd166");
+                aria.wealthUSD -= 90;
                 moveAgents(); updateLB(); return;
             }
 
-            // 取引
+            // Market Transaction
             const actor = agents[Math.floor(Math.random() * agents.length)];
             const target = agents.find(a => a.id !== actor.id);
-            const good = GOODS[Math.floor(Math.random() * GOODS.length)];
-            const amount = Math.floor(Math.random() * 40) + 10;
+            const item = GOODS[Math.floor(Math.random() * GOODS.length)];
+            const amount = Math.floor(Math.random() * 45) + 15;
 
             actor.wealthUSD += amount;
             target.wealthUSD -= amount;
 
-            addLog(`${actor.emoji}${actor.name}が${target.name}から${good}を購入: +$${amount}`, "#4ade80");
-            addLog(`   💸 ${target.name}の残高: $${fmt(target.wealthUSD)}`, "#f87171");
+            addLog(`${actor.name} EXECUTED ${item}_TRADE: +$${amount}`, "#06d6a0");
+            addLog(`>> ${target.name} POSITION_DECREASED: -$${amount}`, "#ef476f");
 
             moveAgents();
             updateLB();
         }
         
-        function showTab(t) { console.log("Tab:", t); }
+        function showTab(t) { console.log("NAVIGATE_TO:", t); }
     </script>
 </body>
 </html>

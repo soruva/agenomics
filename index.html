@@ -195,5 +195,49 @@ function triggerEvent(t) {
     updateUI();    
 }
 
+if(!window.simLog) window.simLog = [];
+
+function saveSimulation(){
+  window.simLog.push({
+    turn: st.turn,
+    agents: JSON.parse(JSON.stringify(agents))
+  });
+}
+
+function downloadLog(){
+  const data = JSON.stringify(window.simLog, null, 2);
+  const blob = new Blob([data], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "agenomics_simulation.json";
+  a.click();
+}
+
+function generateShareURL(){
+  const data = btoa(JSON.stringify(agents));
+  return location.origin + location.pathname + "?sim=" + data;
+}
+
+function shareSim(){
+  const url = generateShareURL();
+  navigator.clipboard.writeText(url);
+  alert("Share URL copied");
+}
+
+window.addEventListener("load", function(){
+  const params = new URLSearchParams(location.search);
+  if(params.get("sim")){
+    try{
+      agents = JSON.parse(atob(params.get("sim")));
+      renderAgents();
+      updateUI();
+      addLog("🔁 Simulation loaded from URL", "#ffd166");
+    }catch(e){
+      console.log("Invalid sim data");
+    }
+  }
+});             
 </script>  </body>    
 </html>

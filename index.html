@@ -45,6 +45,12 @@
     </nav>    
     <main id="arena"></main>    
     <aside id="leaderboard"><div id="rank-list" style="font-size: 0.8rem; font-weight: bold;"></div></aside>    
+    <div id="insights" style="padding:10px; border-top:1px solid #333; margin-top:10px;">
+  <div style="color:var(--accent); font-size:0.7rem;">INSIGHTS</div>
+  <div id="ins-total"></div>
+  <div id="ins-top"></div>
+  <div id="ins-gap"></div>
+    </div>
     <footer id="log">SYSTEM_V3_REBOOTED...</footer>  <script>    
     let st = { paused: false, turn: 0, points: 0, speed: 800, base: 'USD', symbol: '$', isBubble: false };    
     let rates = { USD: 1, JPY: 150.0, EUR: 0.92, BTC: 0.000015 };    

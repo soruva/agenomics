@@ -40,6 +40,8 @@
         <hr style="width:100%; border:0; border-top:1px solid #333; margin:10px 0;">    
         <button id="card-moon" class="btn" style="color:var(--yellow); border-color:var(--yellow);" onclick="triggerEvent('BTC_PUMP')" disabled>BTC_PUMP (5pt)</button>    
         <button id="card-tax" class="btn" style="color:var(--red); border-color:var(--red); margin-top:5px;" onclick="triggerEvent('EQUILIBRIUM')" disabled>WHALE_TAX (8pt)</button>    
+        <div class="btn" onclick="downloadLog()">EXPORT</div>
+        <div class="btn" onclick="shareSim()">SHARE</div> 
     </nav>    
     <main id="arena"></main>    
     <aside id="leaderboard"><div id="rank-list" style="font-size: 0.8rem; font-weight: bold;"></div></aside>    
